@@ -227,8 +227,8 @@ public class VerifiableCredential {
         private List<String> contexts;
         private List<String> types;
 
-        private static final String DEFAULT_CONTEXT = "https://www.w3.org/2018/credentials/v1";
-        private static final String DEFAULT_TYPE = "VerifiableCredential";
+        static final String DEFAULT_CONTEXT = "https://www.w3.org/2018/credentials/v1";
+        static final String DEFAULT_TYPE = "VerifiableCredential";
 
         /**
          * Put the default context at the front of the context list provided.
