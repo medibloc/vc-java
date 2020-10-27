@@ -11,48 +11,59 @@ import org.junit.Test;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class VerifiableCredentialTest {
     @Test
     public void issue() throws MalformedURLException, JOSEException, VerifiableCredentialException, JsonProcessingException {
-        Map<String, Object> credentialSubject = new HashMap<String, Object>();
-        credentialSubject.put("id", "did:panacea:7aR7Cg46JamVbJgk8azVgUm7Prd74ry1Uct87nZqL3ny");
-
-        Map<String, Object> degree = new HashMap<String, Object>();
-        degree.put("type", "BachelorDegree");
-        degree.put("name", "Bachelor of Science and Arts");
-        credentialSubject.put("degree", degree);
-
         // Generate EC key pair on the secp256k1 curve
         ECKey ecJWK = new ECKeyGenerator(Curve.SECP256K1)
                 .keyUse(KeyUse.SIGNATURE)
                 .keyID("my key ID")
                 .generate();
 
+        // Prepare the issuer information
         String issuerDid = "did:panacea:7Prd74ry1Uct87nZqL3ny7aR7Cg46JamVbJgk8azVgUm";
         String issuerVeriMethod = issuerDid + "#key1";
 
+        Issuer issuer = new Issuer(issuerDid);
+        issuer.addExtra("name", "k-hospital");
+
+        // Prepare a credentialSubject
+        CredentialSubject credentialSubject = new CredentialSubject("did:panacea:7aR7Cg46JamVbJgk8azVgUm7Prd74ry1Uct87nZqL3ny");
+        credentialSubject.addClaim("degree", new HashMap<String, Object>() {{
+            put("type", "BachelorDegree");
+            put("name", "Bachelor of Science and Arts");
+        }});
+
+        // Create a VerifiableCredential
         VerifiableCredential vc = VerifiableCredential.builder()
                 .contexts(Collections.singletonList("https://github.com/medibloc/vc-schema/outpatient/v1"))
                 .types(Collections.singletonList("OutpatientCredential"))
                 .id(new URL("http://k-hospital.com/credentials/100"))
-                .issuer(new VerifiableCredential.Issuer(issuerDid, "k-hospital"))
-                .issuanceDate(new Date(System.currentTimeMillis()/1000*1000)) // for equals()
+                .issuer(issuer)
+                .issuanceDate(new Date(getCurrentTimeSec()))
                 .credentialSubject(credentialSubject)
                 .build();
-
         System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(vc));
 
-        String jwt = vc.sign("ES256K", "my key id", ecJWK.toECPrivateKey());
+        // Sign on VC and Get a serialized JWT
+        String jwt = vc.toJwt("ES256K", issuerVeriMethod, ecJWK.toECPrivateKey());
         System.out.println(jwt);
 
+        // Verify the JWT and Get a VerifiableCredential parsed from the JWT payload.
         VerifiableCredential verified = VerifiableCredential.fromJwt(jwt, ecJWK.toECPublicKey());
         System.out.println(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(verified));
 
+        // Two VerifiableCredentials must be equal
         assertEquals(vc, verified);
+    }
+
+    private static long getCurrentTimeSec() {
+        return System.currentTimeMillis() / 1000 * 1000;
     }
 }

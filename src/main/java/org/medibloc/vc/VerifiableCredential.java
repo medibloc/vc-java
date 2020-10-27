@@ -10,7 +10,6 @@ import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.shaded.json.JSONArray;
-import com.nimbusds.jose.shaded.json.JSONObject;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import lombok.*;
@@ -29,22 +28,22 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SINGLE_E
 @Getter
 @EqualsAndHashCode
 @ToString
-@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonPropertyOrder(alphabetic = true)
 public class VerifiableCredential {
     @NonNull
-    @JsonProperty("@context")
+    @JsonProperty(JSON_PROP_CONTEXTS)
     @JsonFormat(with = {ACCEPT_SINGLE_VALUE_AS_ARRAY, WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED})
     private final List<String> contexts;
     private final URL id;
     @NonNull
-    @JsonProperty("type")
+    @JsonProperty(JSON_PROP_TYPES)
     @JsonFormat(with = {ACCEPT_SINGLE_VALUE_AS_ARRAY, WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED})
     private final List<String> types;
     @NonNull
     private final Issuer issuer;
     @NonNull
-    private final Map<String, Object> credentialSubject;
+    private final CredentialSubject credentialSubject;
     @NonNull
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DATE_FORMAT)
     private final Date issuanceDate;
@@ -52,16 +51,9 @@ public class VerifiableCredential {
     private final Date expirationDate;
 
     private static final String DATE_FORMAT = "yyyy-MM-dd'T'hh:mm:ss'Z'";
-
-    @AllArgsConstructor
-    @Getter
-    @EqualsAndHashCode
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    @JsonPropertyOrder(alphabetic = true)
-    public static class Issuer {
-        private final String id;
-        private final String name;
-    }
+    private static final String JSON_PROP_CONTEXTS = "@context";
+    private static final String JSON_PROP_TYPES = "type";
+    private static final String JSON_PROP_CRED_SUB = "credentialSubject";
 
     /**
      * Returns an external proof (a serialized JWT) that wraps the contents of the {@link VerifiableCredential}.
@@ -71,7 +63,7 @@ public class VerifiableCredential {
      * @return A serialized JWT
      * @throws VerifiableCredentialException
      */
-    public String sign(String jwsAlgo, String keyId, ECPrivateKey privateKey) throws VerifiableCredentialException {
+    public String toJwt(String jwsAlgo, String keyId, ECPrivateKey privateKey) throws VerifiableCredentialException {
         Utils.assertNotNull(jwsAlgo, "keyType must not be null");
         Utils.assertNotNull(keyId, "keyId must not be null");
         Utils.assertNotNull(privateKey, "privateKey must not be null");
@@ -90,6 +82,56 @@ public class VerifiableCredential {
         return jwt.serialize();
     }
 
+    // https://www.w3.org/TR/vc-data-model/#json-web-token-extensions
+    private static final String JWT_CLAIM_NAME_VC = "vc";
+    private static final String JWT_CLAIM_NAME_ISSUER = "issuer";  // for extra infos of the issuer
+
+    /**
+     * Generates a JWT payload from the object. This method fills JWT registered/private claims as described at
+     * https://www.w3.org/TR/vc-data-model/#jwt-encoding
+     * @return A JWT payload
+     */
+    private JWTClaimsSet toJwtPayload() {
+        // Set JWT registered claims (iss, exp, ...)
+        JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder()
+                .issuer(this.issuer.getId())
+                .notBeforeTime(this.issuanceDate);
+        if (this.credentialSubject.getId() != null) {
+            claimsSetBuilder.subject(this.credentialSubject.getId());
+        }
+        if (this.expirationDate != null) {
+            claimsSetBuilder.expirationTime(this.expirationDate);
+        }
+        if (this.id != null) {
+            claimsSetBuilder.jwtID(this.id.toString());
+        }
+
+        // Set JWT private claims
+        claimsSetBuilder.claim(JWT_CLAIM_NAME_VC, toJwtVcClaim());
+        claimsSetBuilder.claim(JWT_CLAIM_NAME_ISSUER, this.issuer.getExtras());
+
+        return claimsSetBuilder.build();
+    }
+
+    /**
+     * Generates a JWT claim that represents a Verifiable Credential
+     * without some fields to be used for the JWT registered claims (iss, exp, ...).
+     */
+    private Map<String, Object> toJwtVcClaim() {
+        Map<String, Object> claim = new HashMap<String, Object>();
+        claim.put(JSON_PROP_CONTEXTS, this.contexts.size() > 1 ? this.contexts : this.contexts.get(0));
+        claim.put(JSON_PROP_TYPES, this.types.size() > 1 ? this.types : this.types.get(0));
+        claim.put(JSON_PROP_CRED_SUB, this.credentialSubject.getClaims());  // without the subject ID
+        return claim;
+    }
+
+    /**
+     * Creates a {@link VerifiableCredential} object by verifying JWT using a public key.
+     * @param serializedJwt A serialized JWT string
+     * @param publicKey A public key for the JWT verification
+     * @return A VerifiableCredential
+     * @throws VerifiableCredentialException Verification failure
+     */
     public static VerifiableCredential fromJwt(String serializedJwt, ECPublicKey publicKey) throws VerifiableCredentialException {
         Utils.assertNotNull(serializedJwt, "serializedJwt must not be null");
         Utils.assertNotNull(publicKey, "publicKey must not be null");
@@ -107,67 +149,50 @@ public class VerifiableCredential {
         }
     }
 
-    // https://www.w3.org/TR/vc-data-model/#json-web-token-extensions
-    private static final String JWT_CLAIM_NAME_VC = "vc";
-
-    private JWTClaimsSet toJwtPayload() {
-        JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder()
-                .issuer(this.issuer.getId())
-                .notBeforeTime(this.issuanceDate);
-        if (this.credentialSubject.containsKey("id")) {
-            claimsSetBuilder.subject(this.credentialSubject.get("id").toString());
-        }
-        if (this.expirationDate != null) {
-            claimsSetBuilder.expirationTime(this.expirationDate);
-        }
-        if (this.id != null) {
-            claimsSetBuilder.jwtID(this.id.toString());
-        }
-
-        claimsSetBuilder.claim(JWT_CLAIM_NAME_VC, toJwtVcClaim());
-
-        Map<String, Object> issuerObj = new HashMap<String, Object>();
-        issuerObj.put("name", this.issuer.getName());
-        claimsSetBuilder.claim("issuer", issuerObj);
-
-        return claimsSetBuilder.build();
-    }
-
+    /**
+     * Converts a JWT payload into a {@link VerifiableCredential} as described at https://www.w3.org/TR/vc-data-model/#jwt-decoding.
+     * @param payload A JWT payload
+     * @return A VerifiableCredential
+     * @throws VerifiableCredentialException The JWT payload is invalid
+     */
     private static VerifiableCredential fromJwtPayload(JWTClaimsSet payload) throws VerifiableCredentialException {
-        JSONObject issuerClaim = (JSONObject) payload.getClaim("issuer");
-
-
-        JSONObject vcClaim = (JSONObject) payload.getClaim(JWT_CLAIM_NAME_VC);
-        if (vcClaim == null) {
-            throw new VerifiableCredentialException(String.format("The claim: %s is not found", JWT_CLAIM_NAME_VC));
-        }
-
         try {
+            Map<String, Object> vcClaim = payload.getJSONObjectClaim(JWT_CLAIM_NAME_VC);
+            if (vcClaim == null) {
+                throw new VerifiableCredentialException(String.format("The claim: %s is not found", JWT_CLAIM_NAME_VC));
+            }
+
             return new VerifiableCredential(
-                    parseList(vcClaim.get("@context")),
+                    toStringList(vcClaim.get(JSON_PROP_CONTEXTS)),
                     new URL(payload.getJWTID()),
-                    parseList(vcClaim.get("type")),
-                    new Issuer(payload.getIssuer(), (String) issuerClaim.get("name")),
-                    parseMap(vcClaim.get("credentialSubject")),
+                    toStringList(vcClaim.get(JSON_PROP_TYPES)),
+                    new Issuer(payload.getIssuer(), payload.getJSONObjectClaim(JWT_CLAIM_NAME_ISSUER)),
+                    new CredentialSubject(payload.getSubject(), toMap(vcClaim.get(JSON_PROP_CRED_SUB))),
                     payload.getNotBeforeTime(),
                     payload.getExpirationTime()
             );
         } catch (MalformedURLException e) {
             throw new VerifiableCredentialException(e);
+        } catch (ParseException e) {
+            throw new VerifiableCredentialException(e);
         }
     }
 
-    private static List<String> parseList(Object obj) throws VerifiableCredentialException {
+    private static List<String> toStringList(Object obj) throws VerifiableCredentialException {
         if (obj == null) {
             return null;
         }
 
-        if (obj instanceof String) {
+        if (obj instanceof String) {  // if obj is string, returns a list with a single element.
             return Collections.singletonList((String) obj);
         } else if (obj instanceof JSONArray) {
             List<String> ret = new ArrayList<String>(((JSONArray) obj).size());
             for (Object o : (JSONArray) obj) {
-                ret.add((String) o);
+                if (o instanceof String) {
+                    ret.add((String) o);
+                } else {
+                    throw new VerifiableCredentialException("list contains a non-string object: " + o);
+                }
             }
             return ret;
         }
@@ -175,46 +200,24 @@ public class VerifiableCredential {
         throw new VerifiableCredentialException("unexpected object: " + obj);
     }
 
-    private static Map<String, Object> parseMap(Object obj) throws VerifiableCredentialException {
-        Object parsed = parse(obj);
-        if (parsed instanceof Map) {
-            return (Map<String, Object>) parsed;
-        }
-        throw new VerifiableCredentialException("invalid object: " + obj);
-    }
-
-    private static Object parse(Object obj) {
+    private static Map<String, Object> toMap(Object obj) throws VerifiableCredentialException {
         if (obj == null) {
             return null;
         }
 
-        if (obj instanceof JSONObject) {
-            Map<String, Object> map = new HashMap<String, Object>(((JSONObject) obj).size());
-            for (String key : ((JSONObject) obj).keySet()) {
-                map.put(key, parse(((JSONObject) obj).get(key)));
+        if (obj instanceof Map) {
+            Map<String, Object> map = new HashMap<String, Object>();
+            for (Map.Entry<?,?> entry : ((Map<?, ?>) obj).entrySet()) {
+                if (entry.getKey() instanceof String) {
+                    map.put((String) entry.getKey(), entry.getValue());
+                } else {
+                    throw new VerifiableCredentialException("key is not a string");
+                }
             }
             return map;
-        } else if (obj instanceof JSONArray) {
-            List<Object> list = new ArrayList<Object>(((JSONArray) obj).size());
-            for (Object elem : (JSONArray) obj) {
-                list.add(parse(elem));
-            }
-            return list;
         }
 
-        return obj;
-    }
-
-    /**
-     * Generates a JWT claim that represents a Verifiable Credential
-     * without some fields which are used for the JWT registered claims (iss, exp, ...).
-     */
-    private Map<String, Object> toJwtVcClaim() {
-        Map<String, Object> claim = new HashMap<String, Object>();
-        claim.put("@context", this.contexts.size() > 1 ? this.contexts : this.contexts.get(0));
-        claim.put("type", this.types.size() > 1 ? this.types : this.types.get(0));
-        claim.put("credentialSubject", this.credentialSubject);
-        return claim;
+        throw new VerifiableCredentialException("object is not a map");
     }
 
     /**
