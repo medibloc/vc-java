@@ -15,7 +15,7 @@ import static org.junit.Assert.*;
 
 public class CredentialTest {
     @Test
-    public void builder() throws MalformedURLException, ParseException {
+    public void builder() throws MalformedURLException, ParseException, VerifiableCredentialException {
         Credential vc = buildCredential();
 
         assertEquals(
@@ -33,6 +33,16 @@ public class CredentialTest {
         assertNull(vc.getExpirationDate());
     }
 
+    @Test(expected = VerifiableCredentialException.class)
+    public void buildWithoutDefaultContext() throws VerifiableCredentialException {
+        Credential.builder().contexts(Collections.singletonList("https://something.com/v1"));
+    }
+
+    @Test(expected = VerifiableCredentialException.class)
+    public void buildWithoutDefaultType() throws VerifiableCredentialException {
+        Credential.builder().types(Collections.singletonList("https://something.com/v1"));
+    }
+
     @Test
     public void toJson() throws MalformedURLException, VerifiableCredentialException, ParseException {
         Credential vc = buildCredential();
@@ -42,7 +52,7 @@ public class CredentialTest {
         );
     }
 
-    static Credential buildCredential() throws MalformedURLException, ParseException {
+    static Credential buildCredential() throws MalformedURLException, ParseException, VerifiableCredentialException {
         // Prepare the issuer information
         Issuer issuer = new Issuer("did:panacea:7Prd74ry1Uct87nZqL3ny7aR7Cg46JamVbJgk8azVgUm");
         issuer.addExtra("name", "Example University");
@@ -59,8 +69,8 @@ public class CredentialTest {
 
         // Create a VerifiableCredential
         return Credential.builder()
-                .contexts(Collections.singletonList("https://www.w3.org/2018/credentials/examples/v1"))
-                .types(Collections.singletonList("UniversityDegreeCredential"))
+                .contexts(Arrays.asList(Credential.CredentialBuilder.DEFAULT_CONTEXT, "https://www.w3.org/2018/credentials/examples/v1"))
+                .types(Arrays.asList(Credential.CredentialBuilder.DEFAULT_TYPE, "UniversityDegreeCredential"))
                 .id(new URL("http://example.edu/credentials/3732"))
                 .issuer(issuer)
                 .issuanceDate(dateFormat.parse("2020-10-05 12:30:50"))

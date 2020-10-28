@@ -9,7 +9,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -63,26 +62,26 @@ public class Credential {
         static final String DEFAULT_TYPE = "VerifiableCredential";
 
         /**
-         * Put the default context at the front of the context list provided.
+         * Validate the contexts
          */
-        CredentialBuilder contexts(List<String> contexts) {
+        CredentialBuilder contexts(List<String> contexts) throws VerifiableCredentialException {
             Utils.assertNotNull(contexts, "contexts must not be null");
-
-            this.contexts = new ArrayList<String>(1 + contexts.size());
-            this.contexts.add(DEFAULT_CONTEXT);
-            this.contexts.addAll(contexts);
+            if (!contexts.contains(DEFAULT_CONTEXT)) {
+                throw new VerifiableCredentialException("contexts must contain the default context: " + DEFAULT_CONTEXT);
+            }
+            this.contexts = contexts;
             return this;
         }
 
         /**
-         * Put the default type at the front of the type list provided.
+         * Validate the types
          */
-        CredentialBuilder types(List<String> types) {
+        CredentialBuilder types(List<String> types) throws VerifiableCredentialException {
             Utils.assertNotNull(types, "types must not be null");
-
-            this.types = new ArrayList<String>(1 + types.size());
-            this.types.add(DEFAULT_TYPE);
-            this.types.addAll(types);
+            if (!types.contains(DEFAULT_TYPE)) {
+                throw new VerifiableCredentialException("types must contain the default type: " + DEFAULT_TYPE);
+            }
+            this.types = types;
             return this;
         }
     }
