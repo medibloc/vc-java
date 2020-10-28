@@ -1,17 +1,8 @@
 package org.medibloc.vc;
 
-import com.fasterxml.jackson.annotation.JsonValue;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSAlgorithm;
-import com.nimbusds.jose.JWSHeader;
-import com.nimbusds.jose.crypto.ECDSASigner;
-import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
-import com.nimbusds.jwt.SignedJWT;
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NonNull;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -25,69 +16,20 @@ import java.util.Map;
  * A verifiable credential in the form of external proof using JWT.
  * See https://www.w3.org/TR/vc-data-model/#proofs-signatures.
  */
-@AllArgsConstructor
 @Getter
-@EqualsAndHashCode
-public class JwtVerifiableCredential implements VerifiableCredential {
-    @NonNull
-    @JsonValue
-    private final String jwt;
-
-    /**
-     * Creates a {@link JwtVerifiableCredential} by signing on the credential using a EC private key.
-     * @param credential A credential to be signed
-     * @param jwsAlgo A JWS algorithm
-     * @param keyId A JWT key ID
-     * @param privateKey A EC private key for signing
-     * @return A verifiable credential
-     * @throws VerifiableCredentialException
-     */
-    public static JwtVerifiableCredential create(Credential credential, String jwsAlgo, String keyId, ECPrivateKey privateKey) throws VerifiableCredentialException {
-        Utils.assertNotNull(credential, "credential must not be null");
-        Utils.assertNotNull(jwsAlgo, "keyType must not be null");
-        Utils.assertNotNull(keyId, "keyId must not be null");
-        Utils.assertNotNull(privateKey, "privateKey must not be null");
-
-        SignedJWT signedJWT = new SignedJWT(
-                new JWSHeader.Builder(JWSAlgorithm.parse(jwsAlgo)).keyID(keyId).build(),
-                encode(credential)
-        );
-
-        try {
-            signedJWT.sign(new ECDSASigner(privateKey));
-        } catch (JOSEException e) {
-            throw new VerifiableCredentialException(e);
-        }
-
-        return new JwtVerifiableCredential(signedJWT.serialize());
+@EqualsAndHashCode(callSuper = true)
+public class JwtVerifiableCredential extends JwtVerifiable implements VerifiableCredential {
+    public JwtVerifiableCredential(Credential credential, String jwsAlgo, String keyId, ECPrivateKey privateKey) throws VerifiableCredentialException {
+        super(jwsAlgo, keyId, privateKey, encode(credential));
     }
 
-    /**
-     * Verifies a verifiable credential using a EC public key and returns a credential decoded.
-     * @param publicKey A EC public key
-     * @return A decoded credential
-     * @throws VerifiableCredentialException
-     */
+    public JwtVerifiableCredential(String jwt) {
+        super(jwt);
+    }
+
     @Override
     public Credential verify(ECPublicKey publicKey) throws VerifiableCredentialException {
-        Utils.assertNotNull(publicKey, "publicKey must not be null");
-
-        try {
-            SignedJWT signedJWT = SignedJWT.parse(this.jwt);
-            if (!signedJWT.verify(new ECDSAVerifier(publicKey))) {
-                throw new VerifiableCredentialException("verification failure");
-            }
-            return decode(signedJWT.getJWTClaimsSet());
-        } catch (ParseException e) {
-            throw new VerifiableCredentialException(e);
-        } catch (JOSEException e) {
-            throw new VerifiableCredentialException(e);
-        }
-    }
-
-    @Override
-    public String serialize() {
-        return this.jwt;
+        return decode(verifyJwt(publicKey));
     }
 
     // https://www.w3.org/TR/vc-data-model/#json-web-token-extensions

@@ -39,7 +39,7 @@ public class Presentation {
     @JsonProperty(JSON_PROP_VERIFIABLE_CREDS)
     private final List<VerifiableCredential> verifiableCredentials;
     @NonNull
-    private final String holder;  //TODO: type
+    private final String holder;  //TODO: make sure about its type
 
     static final String JSON_PROP_CONTEXTS = "@context";
     static final String JSON_PROP_TYPES = "type";

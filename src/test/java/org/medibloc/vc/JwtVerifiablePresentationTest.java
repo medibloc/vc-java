@@ -16,7 +16,7 @@ public class JwtVerifiablePresentationTest {
         Presentation presentation = PresentationTest.buildPresentation();
         ECKey key = TestUtils.generateECKey(presentation.getHolder() + "#key1");
 
-        JwtVerifiablePresentation vp = JwtVerifiablePresentation.create(
+        JwtVerifiablePresentation vp = new JwtVerifiablePresentation(
                 presentation, "ES256K", key.getKeyID(), key.toECPrivateKey()
         );
         assertNotNull(vp);

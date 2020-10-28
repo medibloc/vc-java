@@ -16,7 +16,7 @@ public class JwtVerifiableCredentialTest {
         Credential credential = CredentialTest.buildCredential();
         ECKey key = TestUtils.generateECKey(credential.getIssuer().getId() + "#key1");
 
-        JwtVerifiableCredential vc = JwtVerifiableCredential.create(
+        JwtVerifiableCredential vc = new JwtVerifiableCredential(
                 credential, "ES256K", key.getKeyID(), key.toECPrivateKey()
         );
         assertNotNull(vc);
@@ -30,7 +30,7 @@ public class JwtVerifiableCredentialTest {
         Credential credential = CredentialTest.buildCredential();
         ECKey key = TestUtils.generateECKey(credential.getIssuer().getId() + "#key1");
 
-        JwtVerifiableCredential.create(
+        new JwtVerifiableCredential(
                 credential, "INVALID", key.getKeyID(), key.toECPrivateKey()
         );
     }
