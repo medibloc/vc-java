@@ -4,12 +4,10 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
+import org.medibloc.vc.VerifiableCredentialException;
 import org.medibloc.vc.common.Utils;
 import org.medibloc.vc.verifiable.VerifiableCredential;
-import org.medibloc.vc.VerifiableCredentialException;
 import org.medibloc.vc.verifiable.VerifiablePresentation;
 
 import java.net.URL;
@@ -26,11 +24,11 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SINGLE_E
 @Builder
 @AllArgsConstructor(access = AccessLevel.PUBLIC)
 @Getter
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = true)
 @ToString
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonPropertyOrder(alphabetic = true)
-public class Presentation {
+public class Presentation extends JsonSerializable {
     @NonNull
     @JsonProperty(JSON_PROP_CONTEXTS)
     @JsonFormat(with = {ACCEPT_SINGLE_VALUE_AS_ARRAY, WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED})
@@ -82,14 +80,6 @@ public class Presentation {
             }
             this.types = types;
             return this;
-        }
-    }
-
-    public String toJson() throws VerifiableCredentialException {
-        try {
-            return new ObjectMapper().writeValueAsString(this);
-        } catch (JsonProcessingException e) {
-            throw new VerifiableCredentialException(e);
         }
     }
 }
