@@ -95,7 +95,7 @@ public class JwtVerifiablePresentation implements VerifiablePresentation {
     /**
      * Encode a presentation to a JWT payload.
      */
-    private static JWTClaimsSet encode(Presentation presentation) {
+    private static JWTClaimsSet encode(Presentation presentation) throws VerifiableCredentialException {
         // Set JWT registered claims (iss, exp, ...)
         JWTClaimsSet.Builder claimsSetBuilder = new JWTClaimsSet.Builder()
                 .issuer(presentation.getHolder());
@@ -113,13 +113,14 @@ public class JwtVerifiablePresentation implements VerifiablePresentation {
      * Generates a JWT claim that represents a Verifiable Presentation
      * without some fields to be used for the JWT registered claims (iss, exp, ...).
      */
-    private static Map<String, Object> toJwtVpClaim(Presentation presentation) {
+    private static Map<String, Object> toJwtVpClaim(Presentation presentation) throws VerifiableCredentialException {
         Map<String, Object> claim = new HashMap<String, Object>();
         claim.put(Presentation.JSON_PROP_CONTEXTS, Utils.simplifyList(presentation.getContexts()));
         claim.put(Presentation.JSON_PROP_TYPES, Utils.simplifyList(presentation.getTypes()));
-        claim.put(Presentation.JSON_PROP_VERIFIABLE_CREDS, presentation.getVerifiableCredentials());
+        claim.put(Presentation.JSON_PROP_VERIFIABLE_CREDS, JwtObjectEncoder.fromVerifiableCredentials(presentation.getVerifiableCredentials()));
         return claim;
     }
+
 
     /**
      * Decodes a JWT payload to a {@link Presentation}.
@@ -135,7 +136,7 @@ public class JwtVerifiablePresentation implements VerifiablePresentation {
                     JwtObjectDecoder.toList(vpClaim.get(Presentation.JSON_PROP_CONTEXTS), String.class),
                     new URL(payload.getJWTID()),
                     JwtObjectDecoder.toList(vpClaim.get(Presentation.JSON_PROP_TYPES), String.class),
-                    JwtObjectDecoder.toList(vpClaim.get(Presentation.JSON_PROP_VERIFIABLE_CREDS), VerifiableCredential.class),
+                    JwtObjectDecoder.toVerifiableCredentials(vpClaim.get(Presentation.JSON_PROP_VERIFIABLE_CREDS)),
                     payload.getIssuer()
             );
         } catch (MalformedURLException e) {
@@ -144,4 +145,6 @@ public class JwtVerifiablePresentation implements VerifiablePresentation {
             throw new VerifiableCredentialException(e);
         }
     }
+
+
 }

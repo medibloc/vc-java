@@ -23,13 +23,13 @@ class JwtObjectDecoder {
                 if (valueType.isInstance(o)) {
                     ret.add(valueType.cast(o));
                 } else {
-                    throw new VerifiableCredentialException("list contains unexpected object: " + o);
+                    throw new VerifiableCredentialException("list contains unexpected object type: " + o.getClass());
                 }
             }
             return ret;
         }
 
-        throw new VerifiableCredentialException("unexpected object: " + obj);
+        throw new VerifiableCredentialException("unexpected object type: " + obj.getClass());
     }
 
     /**
@@ -54,5 +54,25 @@ class JwtObjectDecoder {
         }
 
         throw new VerifiableCredentialException("object is not a map");
+    }
+
+    static VerifiableCredential toVerifiableCredential(Object obj) throws VerifiableCredentialException {
+        if (obj instanceof String) {
+            return new JwtVerifiableCredential((String) obj);
+        }
+        throw new VerifiableCredentialException("unsupported object type: " + obj.getClass());
+    }
+
+    static List<VerifiableCredential> toVerifiableCredentials(Object obj) throws VerifiableCredentialException {
+        if (obj instanceof JSONArray) {
+            JSONArray arr = (JSONArray) obj;
+            List<VerifiableCredential> ret = new ArrayList<VerifiableCredential>(arr.size());
+            for (Object o : arr) {
+                ret.add(JwtObjectDecoder.toVerifiableCredential(o));
+            }
+            return ret;
+        }
+
+        throw new VerifiableCredentialException("unexpected object type: " + obj.getClass());
     }
 }
