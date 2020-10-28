@@ -1,4 +1,7 @@
-package org.medibloc.vc;
+package org.medibloc.vc.verifiable;
+
+import org.medibloc.vc.VerifiableCredentialException;
+import org.medibloc.vc.model.Credential;
 
 import java.security.interfaces.ECPublicKey;
 

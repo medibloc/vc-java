@@ -1,8 +1,14 @@
-package org.medibloc.vc;
+package org.medibloc.vc.verifiable.jwt;
 
 import com.nimbusds.jwt.JWTClaimsSet;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.medibloc.vc.VerifiableCredentialException;
+import org.medibloc.vc.model.Credential;
+import org.medibloc.vc.model.CredentialSubject;
+import org.medibloc.vc.model.Issuer;
+import org.medibloc.vc.common.Utils;
+import org.medibloc.vc.verifiable.VerifiableCredential;
 
 import java.net.MalformedURLException;
 import java.net.URL;

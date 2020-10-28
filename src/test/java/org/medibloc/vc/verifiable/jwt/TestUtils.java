@@ -1,4 +1,4 @@
-package org.medibloc.vc;
+package org.medibloc.vc.verifiable.jwt;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.Curve;

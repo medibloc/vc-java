@@ -1,4 +1,7 @@
-package org.medibloc.vc;
+package org.medibloc.vc.verifiable.jwt;
+
+import org.medibloc.vc.VerifiableCredentialException;
+import org.medibloc.vc.verifiable.VerifiableCredential;
 
 import java.util.ArrayList;
 import java.util.List;

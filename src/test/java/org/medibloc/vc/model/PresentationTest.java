@@ -1,7 +1,12 @@
-package org.medibloc.vc;
+package org.medibloc.vc.model;
 
 import com.nimbusds.jose.JOSEException;
 import org.junit.Test;
+import org.medibloc.vc.VerifiableCredentialException;
+import org.medibloc.vc.model.Credential;
+import org.medibloc.vc.model.Presentation;
+import org.medibloc.vc.verifiable.VerifiableCredential;
+import org.medibloc.vc.verifiable.jwt.JwtVerifiableCredential;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -49,7 +54,7 @@ public class PresentationTest {
         );
     }
 
-    static Presentation buildPresentation() throws MalformedURLException, ParseException, VerifiableCredentialException, JOSEException {
+    public static Presentation buildPresentation() throws MalformedURLException, ParseException, VerifiableCredentialException, JOSEException {
         VerifiableCredential vc = new JwtVerifiableCredential("eyJraWQiOiJkaWQ6cGFuYWNlYTo3UHJkNzRyeTFVY3Q4N25acUwzbnk3YVI3Q2c0NkphbVZiSmdrOGF6VmdVbSNrZXkxIiwiYWxnIjoiRVMyNTZLIn0.eyJzdWIiOiJkaWQ6cGFuYWNlYTo3YVI3Q2c0NkphbVZiSmdrOGF6VmdVbTdQcmQ3NHJ5MVVjdDg3blpxTDNueSIsIm5iZiI6MTYwMTg1Nzg1MCwiaXNzIjoiZGlkOnBhbmFjZWE6N1ByZDc0cnkxVWN0ODduWnFMM255N2FSN0NnNDZKYW1WYkpnazhhelZnVW0iLCJ2YyI6eyJjcmVkZW50aWFsU3ViamVjdCI6eyJkZWdyZWUiOnsibmFtZSI6IkJhY2hlbG9yIG9mIFNjaWVuY2UgYW5kIEFydHMiLCJ0eXBlIjoiQmFjaGVsb3JEZWdyZWUifX0sInR5cGUiOlsiVmVyaWZpYWJsZUNyZWRlbnRpYWwiLCJVbml2ZXJzaXR5RGVncmVlQ3JlZGVudGlhbCJdLCJAY29udGV4dCI6WyJodHRwczpcL1wvd3d3LnczLm9yZ1wvMjAxOFwvY3JlZGVudGlhbHNcL3YxIiwiaHR0cHM6XC9cL3d3dy53My5vcmdcLzIwMThcL2NyZWRlbnRpYWxzXC9leGFtcGxlc1wvdjEiXX0sImp0aSI6Imh0dHA6XC9cL2V4YW1wbGUuZWR1XC9jcmVkZW50aWFsc1wvMzczMiIsImlzc3VlciI6eyJuYW1lIjoiRXhhbXBsZSBVbml2ZXJzaXR5In19.9e33oCgJlPqpTwTOe2b45PtaMvlCTwY84imbdvCUFaZ3btV4bUUHXj6qivYgtEMqLjSLLvY3dVLflv8LpD8wvA");
 
         return Presentation.builder()

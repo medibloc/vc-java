@@ -1,7 +1,8 @@
-package org.medibloc.vc;
+package org.medibloc.vc.model;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
+import org.medibloc.vc.model.Issuer;
 
 import java.io.IOException;
 

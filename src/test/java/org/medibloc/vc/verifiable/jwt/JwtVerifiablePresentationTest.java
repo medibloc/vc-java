@@ -1,8 +1,11 @@
-package org.medibloc.vc;
+package org.medibloc.vc.verifiable.jwt;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
 import org.junit.Test;
+import org.medibloc.vc.VerifiableCredentialException;
+import org.medibloc.vc.model.Presentation;
+import org.medibloc.vc.model.PresentationTest;
 
 import java.net.MalformedURLException;
 import java.text.ParseException;

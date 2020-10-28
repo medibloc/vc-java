@@ -1,4 +1,4 @@
-package org.medibloc.vc;
+package org.medibloc.vc.verifiable.jwt;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.nimbusds.jose.JOSEException;
@@ -12,6 +12,8 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
+import org.medibloc.vc.VerifiableCredentialException;
+import org.medibloc.vc.common.Utils;
 
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;

@@ -1,6 +1,8 @@
-package org.medibloc.vc;
+package org.medibloc.vc.verifiable.jwt;
 
 import com.nimbusds.jose.shaded.json.JSONArray;
+import org.medibloc.vc.VerifiableCredentialException;
+import org.medibloc.vc.verifiable.VerifiableCredential;
 
 import java.util.*;
 

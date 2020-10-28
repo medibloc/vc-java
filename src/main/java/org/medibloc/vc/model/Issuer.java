@@ -1,4 +1,4 @@
-package org.medibloc.vc;
+package org.medibloc.vc.model;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;

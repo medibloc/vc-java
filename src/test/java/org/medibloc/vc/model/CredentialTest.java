@@ -1,6 +1,10 @@
-package org.medibloc.vc;
+package org.medibloc.vc.model;
 
 import org.junit.Test;
+import org.medibloc.vc.VerifiableCredentialException;
+import org.medibloc.vc.model.Credential;
+import org.medibloc.vc.model.CredentialSubject;
+import org.medibloc.vc.model.Issuer;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -52,7 +56,7 @@ public class CredentialTest {
         );
     }
 
-    static Credential buildCredential() throws MalformedURLException, ParseException, VerifiableCredentialException {
+    public static Credential buildCredential() throws MalformedURLException, ParseException, VerifiableCredentialException {
         // Prepare the issuer information
         Issuer issuer = new Issuer("did:panacea:7Prd74ry1Uct87nZqL3ny7aR7Cg46JamVbJgk8azVgUm");
         issuer.addExtra("name", "Example University");
