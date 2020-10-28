@@ -44,9 +44,7 @@ class VCTest {
         // Create a VerifiableCredential using ECKey
         // Currently, only external proof (JWT) is supported.
         // This example assumes that you already have a EC private key.
-        ECPrivateKey priv### Creating a Verifiable Presentation
-                         
-                         TBDateKey = ...;
+        ECPrivateKey privateKey = ...;
         VerifiableCredential vc = JwtVerifiableCredential.create(
             credential,
             "ES256K",
