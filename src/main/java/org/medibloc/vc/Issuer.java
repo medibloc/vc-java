@@ -9,6 +9,9 @@ import lombok.*;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents a issuer defined at https://www.w3.org/TR/vc-data-model/#issuer.
+ */
 @AllArgsConstructor
 @Getter
 @EqualsAndHashCode

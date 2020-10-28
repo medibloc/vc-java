@@ -12,6 +12,9 @@ import lombok.ToString;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Represents a credentialSubject defined at https://www.w3.org/TR/vc-data-model/#credential-subject.
+ */
 @AllArgsConstructor
 @Getter
 @ToString

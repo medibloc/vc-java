@@ -14,6 +14,11 @@ import java.util.List;
 import static com.fasterxml.jackson.annotation.JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY;
 import static com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED;
 
+/**
+ * Represents a credential defined at https://www.w3.org/TR/vc-data-model/#credentials.
+ * Note that this class doesn't contain any <a href="https://www.w3.org/TR/vc-data-model/#proofs-signatures">proof</a>.
+ * This class can be a source of {@link VerifiableCredential} which contains proofs.
+ */
 @Builder
 @Getter
 @EqualsAndHashCode

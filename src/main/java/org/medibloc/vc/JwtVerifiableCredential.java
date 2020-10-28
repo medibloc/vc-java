@@ -17,6 +17,10 @@ import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.util.*;
 
+/**
+ * A verifiable credential in the form of external proof using JWT.
+ * See https://www.w3.org/TR/vc-data-model/#proofs-signatures.
+ */
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Getter
 @EqualsAndHashCode
@@ -24,6 +28,15 @@ public class JwtVerifiableCredential implements VerifiableCredential {
     @NonNull
     private final String jwt;
 
+    /**
+     * Creates a {@link JwtVerifiableCredential} by signing on the credential using a EC private key.
+     * @param credential A credential to be signed
+     * @param jwsAlgo A JWS algorithm
+     * @param keyId A JWT key ID
+     * @param privateKey A EC private key for signing
+     * @return A verifiable credential
+     * @throws VerifiableCredentialException
+     */
     public static JwtVerifiableCredential create(Credential credential, String jwsAlgo, String keyId, ECPrivateKey privateKey) throws VerifiableCredentialException {
         Utils.assertNotNull(credential, "credential must not be null");
         Utils.assertNotNull(jwsAlgo, "keyType must not be null");
@@ -44,6 +57,12 @@ public class JwtVerifiableCredential implements VerifiableCredential {
         return new JwtVerifiableCredential(signedJWT.serialize());
     }
 
+    /**
+     * Verifies a verifiable credential using a EC public key and returns a credential decoded.
+     * @param publicKey A EC public key
+     * @return A decoded credential
+     * @throws VerifiableCredentialException
+     */
     @Override
     public Credential verify(ECPublicKey publicKey) throws VerifiableCredentialException {
         Utils.assertNotNull(publicKey, "publicKey must not be null");
@@ -66,9 +85,7 @@ public class JwtVerifiableCredential implements VerifiableCredential {
     private static final String JWT_CLAIM_NAME_ISSUER = "issuer";  // for extra infos of the issuer
 
     /**
-     * Generates a JWT payload from the object. This method fills JWT registered/private claims as described at
-     * https://www.w3.org/TR/vc-data-model/#jwt-encoding
-     * @return A JWT payload
+     * Encode a credential to a JWT payload, as described at https://www.w3.org/TR/vc-data-model/#jwt-encoding
      */
     private static JWTClaimsSet encode(Credential credential) {
         // Set JWT registered claims (iss, exp, ...)
@@ -106,9 +123,6 @@ public class JwtVerifiableCredential implements VerifiableCredential {
 
     /**
      * Decodes a JWT payload to a {@link Credential}, as described at https://www.w3.org/TR/vc-data-model/#jwt-decoding.
-     * @param payload A JWT payload
-     * @return A VerifiableCredential
-     * @throws VerifiableCredentialException The JWT payload is invalid
      */
     private static Credential decode(JWTClaimsSet payload) throws VerifiableCredentialException {
         try {
@@ -133,6 +147,10 @@ public class JwtVerifiableCredential implements VerifiableCredential {
         }
     }
 
+    /**
+     * Create a string list from an object parsed by Nimbus JOSE JWT library, if possible.
+     * This methods expects the object is a {@link String} or a {@link com.nimbusds.jose.shaded.json.JSONArray} which extends {@link ArrayList}.
+     */
     private static List<String> toStringList(Object obj) throws VerifiableCredentialException {
         if (obj == null) {
             return null;
@@ -155,6 +173,10 @@ public class JwtVerifiableCredential implements VerifiableCredential {
         throw new VerifiableCredentialException("unexpected object: " + obj);
     }
 
+    /**
+     * Create a <code>Map<String, Object></code> from an object parsed by Nimbus JOSE JWT library, if possible.
+     * This method expects the object is a {@link com.nimbusds.jose.shaded.json.JSONObject} which extends {@link HashMap}.
+     */
     private static Map<String, Object> toMap(Object obj) throws VerifiableCredentialException {
         if (obj == null) {
             return null;
