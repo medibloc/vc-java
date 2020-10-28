@@ -1,21 +1,25 @@
 package org.medibloc.vc;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
-import com.nimbusds.jose.shaded.json.JSONArray;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * A verifiable credential in the form of external proof using JWT.
@@ -26,6 +30,7 @@ import java.util.*;
 @EqualsAndHashCode
 public class JwtVerifiableCredential implements VerifiableCredential {
     @NonNull
+    @JsonValue
     private final String jwt;
 
     /**
@@ -120,8 +125,8 @@ public class JwtVerifiableCredential implements VerifiableCredential {
      */
     private static Map<String, Object> toJwtVcClaim(Credential credential) {
         Map<String, Object> claim = new HashMap<String, Object>();
-        claim.put(Credential.JSON_PROP_CONTEXTS, credential.getContexts().size() > 1 ? credential.getContexts() : credential.getContexts().get(0));
-        claim.put(Credential.JSON_PROP_TYPES, credential.getTypes().size() > 1 ? credential.getTypes() : credential.getTypes().get(0));
+        claim.put(Credential.JSON_PROP_CONTEXTS, Utils.simplifyList(credential.getContexts()));
+        claim.put(Credential.JSON_PROP_TYPES, Utils.simplifyList(credential.getTypes()));
         claim.put(Credential.JSON_PROP_CRED_SUB, credential.getCredentialSubject().getClaims());  // without the subject ID
         return claim;
     }
@@ -137,11 +142,11 @@ public class JwtVerifiableCredential implements VerifiableCredential {
             }
 
             return new Credential(
-                    toStringList(vcClaim.get(Credential.JSON_PROP_CONTEXTS)),
+                    JwtObjectDecoder.toList(vcClaim.get(Credential.JSON_PROP_CONTEXTS), String.class),
                     new URL(payload.getJWTID()),
-                    toStringList(vcClaim.get(Credential.JSON_PROP_TYPES)),
+                    JwtObjectDecoder.toList(vcClaim.get(Credential.JSON_PROP_TYPES), String.class),
                     new Issuer(payload.getIssuer(), payload.getJSONObjectClaim(JWT_CLAIM_NAME_ISSUER)),
-                    new CredentialSubject(payload.getSubject(), toMap(vcClaim.get(Credential.JSON_PROP_CRED_SUB))),
+                    new CredentialSubject(payload.getSubject(), JwtObjectDecoder.toMap(vcClaim.get(Credential.JSON_PROP_CRED_SUB), String.class)),
                     payload.getNotBeforeTime(),
                     payload.getExpirationTime()
             );
@@ -150,55 +155,5 @@ public class JwtVerifiableCredential implements VerifiableCredential {
         } catch (ParseException e) {
             throw new VerifiableCredentialException(e);
         }
-    }
-
-    /**
-     * Create a string list from an object parsed by Nimbus JOSE JWT library, if possible.
-     * This methods expects the object is a {@link String} or a {@link com.nimbusds.jose.shaded.json.JSONArray} which extends {@link ArrayList}.
-     */
-    private static List<String> toStringList(Object obj) throws VerifiableCredentialException {
-        if (obj == null) {
-            return null;
-        }
-
-        if (obj instanceof String) {  // if obj is string, returns a list with a single element.
-            return Collections.singletonList((String) obj);
-        } else if (obj instanceof JSONArray) {
-            List<String> ret = new ArrayList<String>(((JSONArray) obj).size());
-            for (Object o : (JSONArray) obj) {
-                if (o instanceof String) {
-                    ret.add((String) o);
-                } else {
-                    throw new VerifiableCredentialException("list contains a non-string object: " + o);
-                }
-            }
-            return ret;
-        }
-
-        throw new VerifiableCredentialException("unexpected object: " + obj);
-    }
-
-    /**
-     * Create a <code>Map<String, Object></code> from an object parsed by Nimbus JOSE JWT library, if possible.
-     * This method expects the object is a {@link com.nimbusds.jose.shaded.json.JSONObject} which extends {@link HashMap}.
-     */
-    private static Map<String, Object> toMap(Object obj) throws VerifiableCredentialException {
-        if (obj == null) {
-            return null;
-        }
-
-        if (obj instanceof Map) {
-            Map<String, Object> map = new HashMap<String, Object>();
-            for (Map.Entry<?,?> entry : ((Map<?, ?>) obj).entrySet()) {
-                if (entry.getKey() instanceof String) {
-                    map.put((String) entry.getKey(), entry.getValue());
-                } else {
-                    throw new VerifiableCredentialException("key is not a string");
-                }
-            }
-            return map;
-        }
-
-        throw new VerifiableCredentialException("object is not a map");
     }
 }
