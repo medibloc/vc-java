@@ -34,7 +34,7 @@ public class CredentialTest {
     static Credential buildCredential() throws MalformedURLException {
         // Prepare the issuer information
         Issuer issuer = new Issuer("did:panacea:7Prd74ry1Uct87nZqL3ny7aR7Cg46JamVbJgk8azVgUm");
-        issuer.addExtra("name", "k-hospital");
+        issuer.addExtra("name", "Example University");
 
         // Prepare a credentialSubject
         CredentialSubject credentialSubject = new CredentialSubject("did:panacea:7aR7Cg46JamVbJgk8azVgUm7Prd74ry1Uct87nZqL3ny");
@@ -45,9 +45,9 @@ public class CredentialTest {
 
         // Create a VerifiableCredential
         return Credential.builder()
-                .contexts(Collections.singletonList("https://github.com/medibloc/vc-schema/outpatient/v1"))
-                .types(Collections.singletonList("OutpatientCredential"))
-                .id(new URL("http://k-hospital.com/credentials/100"))
+                .contexts(Collections.singletonList("https://www.w3.org/2018/credentials/examples/v1"))
+                .types(Collections.singletonList("UniversityDegreeCredential"))
+                .id(new URL("http://example.edu/credentials/3732"))
                 .issuer(issuer)
                 .issuanceDate(new Date(getCurrentTimeSec()))
                 .credentialSubject(credentialSubject)
