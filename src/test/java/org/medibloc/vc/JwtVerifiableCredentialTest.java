@@ -8,13 +8,14 @@ import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.junit.Test;
 
 import java.net.MalformedURLException;
+import java.text.ParseException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class JwtVerifiableCredentialTest {
     @Test
-    public void createAndVerify() throws MalformedURLException, JOSEException, VerifiableCredentialException {
+    public void createAndVerify() throws MalformedURLException, JOSEException, VerifiableCredentialException, ParseException {
         Credential credential = CredentialTest.buildCredential();
         ECKey key = generateECKey(credential);
 
@@ -28,7 +29,7 @@ public class JwtVerifiableCredentialTest {
     }
 
     @Test(expected = VerifiableCredentialException.class)
-    public void createWithInvalidAlgo() throws MalformedURLException, JOSEException, VerifiableCredentialException {
+    public void createWithInvalidAlgo() throws MalformedURLException, JOSEException, VerifiableCredentialException, ParseException {
         Credential credential = CredentialTest.buildCredential();
         ECKey key = generateECKey(credential);
 
