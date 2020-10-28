@@ -1,7 +1,7 @@
 # Verifiable Credential SDK in Java 
 
 This SDK is for creating/verifying W3C Verifiable Credentials and Presentations.
-This SDK is compatible with the [Typescript SDK](https://github.com/decentralized-identity/did-jwt-vc) written by [DIF](https://identity.foundation).
+The behavior is compatible with the [Typescript SDK](https://github.com/decentralized-identity/did-jwt-vc) written by [DIF](https://identity.foundation).
 
 ## Installation
 
