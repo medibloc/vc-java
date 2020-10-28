@@ -13,7 +13,7 @@ import static org.junit.Assert.*;
 
 public class CredentialTest {
     @Test
-    public void builder() throws MalformedURLException {
+    public void builder() throws MalformedURLException, VerifiableCredentialException {
         Credential vc = buildCredential();
 
         assertEquals(

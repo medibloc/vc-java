@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.*;
 
 import java.net.URL;
@@ -82,6 +84,14 @@ public class Credential {
             this.types.add(DEFAULT_TYPE);
             this.types.addAll(types);
             return this;
+        }
+    }
+
+    public String toJson() throws VerifiableCredentialException {
+        try {
+            return new ObjectMapper().writeValueAsString(this);
+        } catch (JsonProcessingException e) {
+            throw new VerifiableCredentialException(e);
         }
     }
 }

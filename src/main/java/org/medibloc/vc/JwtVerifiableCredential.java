@@ -21,7 +21,7 @@ import java.util.*;
  * A verifiable credential in the form of external proof using JWT.
  * See https://www.w3.org/TR/vc-data-model/#proofs-signatures.
  */
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@AllArgsConstructor
 @Getter
 @EqualsAndHashCode
 public class JwtVerifiableCredential implements VerifiableCredential {
@@ -78,6 +78,11 @@ public class JwtVerifiableCredential implements VerifiableCredential {
         } catch (JOSEException e) {
             throw new VerifiableCredentialException(e);
         }
+    }
+
+    @Override
+    public String serialize() {
+        return this.jwt;
     }
 
     // https://www.w3.org/TR/vc-data-model/#json-web-token-extensions

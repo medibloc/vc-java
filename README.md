@@ -40,6 +40,7 @@ class VCTest {
             .issuanceDate(new Date())
             .credentialSubject(credentialSubject)
             .build();
+        System.out.println(credential.toJson());
 
         // Create a VerifiableCredential using ECKey
         // Currently, only external proof (JWT) is supported.
@@ -51,6 +52,7 @@ class VCTest {
             "did:panacea:7Prd74ry1Uct87nZqL3ny7aR7Cg46JamVbJgk8azVgUm#key1",
             privateKey
         );
+        System.out.println(vc.serialize());
     }
 }
 ```
