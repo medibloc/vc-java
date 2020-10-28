@@ -17,14 +17,14 @@ public class CredentialTest {
         Credential vc = buildCredential();
 
         assertEquals(
-                Arrays.asList(Credential.CredentialBuilder.DEFAULT_CONTEXT, "https://github.com/medibloc/vc-schema/outpatient/v1"),
+                Arrays.asList(Credential.CredentialBuilder.DEFAULT_CONTEXT, "https://www.w3.org/2018/credentials/examples/v1"),
                 vc.getContexts()
         );
         assertEquals(
-                Arrays.asList(Credential.CredentialBuilder.DEFAULT_TYPE, "OutpatientCredential"),
+                Arrays.asList(Credential.CredentialBuilder.DEFAULT_TYPE, "UniversityDegreeCredential"),
                 vc.getTypes()
         );
-        assertEquals("http://k-hospital.com/credentials/100", vc.getId().toString());
+        assertEquals("http://example.edu/credentials/3732", vc.getId().toString());
         assertNotNull(vc.getIssuer());
         assertNotNull(vc.getCredentialSubject());
         assertNotNull(vc.getIssuanceDate());
