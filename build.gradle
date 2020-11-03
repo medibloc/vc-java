@@ -11,7 +11,13 @@ sourceCompatibility = JavaVersion.VERSION_1_6
 targetCompatibility = JavaVersion.VERSION_1_6
 
 repositories {
-    mavenLocal()
+    maven {
+        url = "https://maven.pkg.github.com/medibloc/jjwt"
+        credentials {
+            username = System.getenv("GPR_USER")
+            password = System.getenv("GPR_API_KEY")
+        }
+    }
     mavenCentral()
 }
 
