@@ -50,6 +50,7 @@ public class Issuer {
         return extras;
     }
 
+    // This is like the type aliasing, so that the Extra class can be passed as 'Class' type arguments for Jackson.
     public static class Extras extends HashMap<String, Object> {
     }
 }

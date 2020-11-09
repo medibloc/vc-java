@@ -36,7 +36,7 @@ class JwtVerifiable {
                     .signWith(privateKey, SignatureAlgorithm.forName(algo))
                     .serializeToJsonWith(new JacksonSerializer(new ObjectMapper()))
                     .compact();
-        } catch (Exception e) {
+        } catch (JwtException e) {
             throw new VerifiableCredentialException(e);
         }
     }
@@ -48,7 +48,7 @@ class JwtVerifiable {
                     .deserializeJsonWith(new JacksonDeserializer(classMap))
                     .build()
                     .parseClaimsJws(this.jws);
-        } catch (Exception e) {
+        } catch (JwtException e) {
             throw new VerifiableCredentialException(e);
         }
     }

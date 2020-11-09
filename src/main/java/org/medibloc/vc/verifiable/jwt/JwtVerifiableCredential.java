@@ -29,6 +29,11 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SINGLE_E
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class JwtVerifiableCredential extends JwtVerifiable implements VerifiableCredential {
+    private static final Map<String, Class> classMap = new HashMap<String, Class>(){{
+        put(JWT_CLAIM_NAME_VC, VcClaim.class);
+        put(JWT_CLAIM_NAME_ISSUER, Issuer.Extras.class);
+    }};
+
     public JwtVerifiableCredential(Credential credential, String jwsAlgo, String keyId, PrivateKey privateKey) throws VerifiableCredentialException {
         super(jwsAlgo, keyId, privateKey, encode(credential));
     }
@@ -39,10 +44,7 @@ public class JwtVerifiableCredential extends JwtVerifiable implements Verifiable
 
     @Override
     public Credential verify(PublicKey publicKey) throws VerifiableCredentialException {
-        Map<String, Class> classMap = new HashMap<String, Class>();
-        classMap.put(JWT_CLAIM_NAME_VC, VcClaim.class);
-        classMap.put(JWT_CLAIM_NAME_ISSUER, Issuer.Extras.class);
-        return decode(super.verifyJwt(publicKey, classMap).getBody());
+        return decode(super.verifyJwt(publicKey, this.classMap).getBody());
     }
 
     // https://www.w3.org/TR/vc-data-model/#json-web-token-extensions

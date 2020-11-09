@@ -28,6 +28,10 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SINGLE_E
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class JwtVerifiablePresentation extends JwtVerifiable implements VerifiablePresentation {
+    private static final Map<String, Class> classMap = new HashMap<String, Class>(){{
+        put(JWT_CLAIM_NAME_VP, VpClaim.class);
+    }};
+
     public JwtVerifiablePresentation(Presentation presentation, String jwsAlgo, String keyId, PrivateKey privateKey) throws VerifiableCredentialException {
         super(jwsAlgo, keyId, privateKey, encode(presentation));
     }
@@ -38,8 +42,6 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
 
     @Override
     public Presentation verify(PublicKey publicKey) throws VerifiableCredentialException {
-        Map<String, Class> classMap = new HashMap<String, Class>();
-        classMap.put(JWT_CLAIM_NAME_VP, VpClaim.class);
         return decode(super.verifyJwt(publicKey, classMap).getBody());
     }
 
