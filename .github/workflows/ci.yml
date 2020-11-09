@@ -27,3 +27,6 @@ jobs:
 
     - name: Build + Test
       run: ./gradlew build
+      env:
+        GPR_USER: youngjoon-lee  # TODO: use the common account instead of this
+        GPR_API_KEY: ${{ secrets.YJ_GITHUB_TOKEN }}
