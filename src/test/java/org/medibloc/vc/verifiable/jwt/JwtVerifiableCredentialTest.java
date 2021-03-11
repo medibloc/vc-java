@@ -28,7 +28,6 @@ public class JwtVerifiableCredentialTest {
 
         assertEquals(credential, vc.verify(ecJWK.toPublicKey()));
         assertEquals(vc.getJwt(), vc.serialize());
-        System.out.println(vc.serialize());
     }
 
     @Test(expected = VerifiableCredentialException.class)
