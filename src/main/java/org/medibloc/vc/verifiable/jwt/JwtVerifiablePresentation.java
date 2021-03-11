@@ -1,10 +1,16 @@
 package org.medibloc.vc.verifiable.jwt;
 
-import com.fasterxml.jackson.annotation.*;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jwt.JWTClaimsSet;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import org.medibloc.vc.VerifiableCredentialException;
 import org.medibloc.vc.model.Presentation;
 import org.medibloc.vc.verifiable.VerifiableCredential;
@@ -14,7 +20,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.HashMap;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -28,10 +34,6 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SINGLE_E
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class JwtVerifiablePresentation extends JwtVerifiable implements VerifiablePresentation {
-    private static final Map<String, Class> classMap = new HashMap<String, Class>(){{
-        put(JWT_CLAIM_NAME_VP, VpClaim.class);
-    }};
-
     public JwtVerifiablePresentation(Presentation presentation, String jwsAlgo, String keyId, PrivateKey privateKey) throws VerifiableCredentialException {
         super(jwsAlgo, keyId, privateKey, encode(presentation));
     }
@@ -42,7 +44,7 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
 
     @Override
     public Presentation verify(PublicKey publicKey) throws VerifiableCredentialException {
-        return decode(super.verifyJwt(publicKey, classMap).getBody());
+        return decode(super.verifyJwt(publicKey));
     }
 
     // https://www.w3.org/TR/vc-data-model/#json-web-token-extensions
@@ -51,34 +53,35 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
     /**
      * Encode a presentation to a JWT payload.
      */
-    private static JwtBuilder encode(Presentation presentation) throws VerifiableCredentialException {
+    private static JWTClaimsSet encode(Presentation presentation) {
         // Set JWT registered claims (iss, exp, ...)
-        JwtBuilder builder = Jwts.builder()
-                .setIssuer(presentation.getHolder());
+        JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder().issuer(presentation.getHolder());
         if (presentation.getId() != null) {
-            builder.setId(presentation.getId().toString());
+            builder.jwtID(presentation.getId().toString());
         }
 
         // Set JWT private claims
-        builder.claim(JWT_CLAIM_NAME_VP, VpClaim.from(presentation));
+        builder.claim(JWT_CLAIM_NAME_VP, VpClaim.from(presentation).toMap());
 
-        return builder;
+        return builder.build();
     }
 
     /**
      * Decodes a JWT payload to a {@link Presentation}.
      */
-    private static Presentation decode(Claims claims) throws VerifiableCredentialException {
-        VpClaim vpClaim = claims.get(JWT_CLAIM_NAME_VP, VpClaim.class);
+    private static Presentation decode(JWTClaimsSet claims) throws VerifiableCredentialException {
         try {
+            VpClaim vpClaim = VpClaim.fromMap(claims.getJSONObjectClaim(JWT_CLAIM_NAME_VP));
             return Presentation.builder()
                     .contexts(vpClaim.getContexts())
                     .types(vpClaim.getTypes())
                     .verifiableCredentials(vpClaim.getVerifiableCredentials())
                     .holder(claims.getIssuer())
-                    .id(new URL(claims.getId()))
+                    .id(new URL(claims.getJWTID()))
                     .build();
         } catch (MalformedURLException e) {
+            throw new VerifiableCredentialException(e);
+        } catch (ParseException e) {
             throw new VerifiableCredentialException(e);
         }
     }
@@ -107,6 +110,14 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
 
         static VpClaim from(Presentation presentation) {
             return new VpClaim(presentation.getContexts(), presentation.getTypes(), presentation.getVerifiableCredentials());
+        }
+
+        static VpClaim fromMap(Map<String, Object> map) {
+            return new ObjectMapper().convertValue(map, VpClaim.class);
+        }
+
+        public Map<String, Object> toMap() {
+            return new ObjectMapper().convertValue(this, new TypeReference<Map<String, Object>>() {});
         }
     }
 }

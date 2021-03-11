@@ -1,10 +1,16 @@
 package org.medibloc.vc.verifiable.jwt;
 
-import com.fasterxml.jackson.annotation.*;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtBuilder;
-import io.jsonwebtoken.Jwts;
-import lombok.*;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jwt.JWTClaimsSet;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import org.medibloc.vc.VerifiableCredentialException;
 import org.medibloc.vc.model.Credential;
 import org.medibloc.vc.model.CredentialSubject;
@@ -15,7 +21,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.HashMap;
+import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
 
@@ -29,11 +35,6 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SINGLE_E
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class JwtVerifiableCredential extends JwtVerifiable implements VerifiableCredential {
-    private static final Map<String, Class> classMap = new HashMap<String, Class>(){{
-        put(JWT_CLAIM_NAME_VC, VcClaim.class);
-        put(JWT_CLAIM_NAME_ISSUER, Issuer.Extras.class);
-    }};
-
     public JwtVerifiableCredential(Credential credential, String jwsAlgo, String keyId, PrivateKey privateKey) throws VerifiableCredentialException {
         super(jwsAlgo, keyId, privateKey, encode(credential));
     }
@@ -44,7 +45,7 @@ public class JwtVerifiableCredential extends JwtVerifiable implements Verifiable
 
     @Override
     public Credential verify(PublicKey publicKey) throws VerifiableCredentialException {
-        return decode(super.verifyJwt(publicKey, this.classMap).getBody());
+        return decode(super.verifyJwt(publicKey));
     }
 
     // https://www.w3.org/TR/vc-data-model/#json-web-token-extensions
@@ -54,52 +55,55 @@ public class JwtVerifiableCredential extends JwtVerifiable implements Verifiable
     /**
      * Encode a credential to a JWT payload, as described at https://www.w3.org/TR/vc-data-model/#jwt-encoding
      */
-    private static JwtBuilder encode(Credential credential) {
+    private static JWTClaimsSet encode(Credential credential) {
+
         // Set JWT registered claims (iss, exp, ...)
-        JwtBuilder builder = Jwts.builder()
-                .setIssuer(credential.getIssuer().getId())
-                .setNotBefore(credential.getIssuanceDate());
+        JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
+                .issuer(credential.getIssuer().getId())
+                .notBeforeTime(credential.getIssuanceDate());
         if (credential.getCredentialSubject().getId() != null) {
-            builder.setSubject(credential.getCredentialSubject().getId());
+            builder.subject(credential.getCredentialSubject().getId());
         }
         if (credential.getExpirationDate() != null) {
-            builder.setExpiration(credential.getExpirationDate());
+            builder.expirationTime(credential.getExpirationDate());
         }
         if (credential.getId() != null) {
-            builder.setId(credential.getId().toString());
+            builder.jwtID(credential.getId().toString());
         }
 
         // Set JWT private claims
-        builder.claim(JWT_CLAIM_NAME_VC, VcClaim.from(credential));
+        builder.claim(JWT_CLAIM_NAME_VC, VcClaim.from(credential).toMap());
         builder.claim(JWT_CLAIM_NAME_ISSUER, credential.getIssuer().getExtras());
 
-        return builder;
+        return builder.build();
     }
 
     /**
      * Decodes a JWT payload to a {@link Credential}, as described at https://www.w3.org/TR/vc-data-model/#jwt-decoding.
      */
-    private static Credential decode(Claims claims) throws VerifiableCredentialException {
-        VcClaim vcClaim = claims.get(JWT_CLAIM_NAME_VC, VcClaim.class);
-        Issuer.Extras issuerExtras = claims.get(JWT_CLAIM_NAME_ISSUER, Issuer.Extras.class);
-
+    private static Credential decode(JWTClaimsSet claims) throws VerifiableCredentialException {
         try {
+            VcClaim vcClaim = VcClaim.fromMap(claims.getJSONObjectClaim(JWT_CLAIM_NAME_VC));
+            Map<String, Object> issuerExtras = claims.getJSONObjectClaim(JWT_CLAIM_NAME_ISSUER);
+
             Credential.CredentialBuilder builder =  Credential.builder()
                     .contexts(vcClaim.getContexts())
                     .types(vcClaim.getTypes())
                     .credentialSubject(new CredentialSubject(claims.getSubject(), vcClaim.getCredentialSubjectClaims()))
                     .issuer(new Issuer(claims.getIssuer(), issuerExtras))
-                    .issuanceDate(claims.getNotBefore());
+                    .issuanceDate(claims.getNotBeforeTime());
 
-            if (claims.getExpiration() != null) {
-                builder = builder.expirationDate(claims.getExpiration());
+            if (claims.getExpirationTime() != null) {
+                builder = builder.expirationDate(claims.getExpirationTime());
             }
-            if (claims.getId() != null) {
-                builder = builder.id(new URL(claims.getId()));
+            if (claims.getJWTID() != null) {
+                builder = builder.id(new URL(claims.getJWTID()));
             }
 
             return builder.build();
         } catch (MalformedURLException e) {
+            throw new VerifiableCredentialException(e);
+        } catch (ParseException e) {
             throw new VerifiableCredentialException(e);
         }
     }
@@ -127,6 +131,14 @@ public class JwtVerifiableCredential extends JwtVerifiable implements Verifiable
 
         static VcClaim from(Credential credential) {
             return new VcClaim(credential.getContexts(), credential.getTypes(), credential.getCredentialSubject().getClaims());
+        }
+
+        static VcClaim fromMap(Map<String, Object> map) {
+            return new ObjectMapper().convertValue(map, VcClaim.class);
+        }
+
+        public Map<String, Object> toMap() {
+            return new ObjectMapper().convertValue(this, new TypeReference<Map<String, Object>>() {});
         }
     }
 }

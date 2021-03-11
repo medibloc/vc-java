@@ -1,45 +1,46 @@
 package org.medibloc.vc.verifiable.jwt;
 
-import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.Curve;
+import com.nimbusds.jose.jwk.ECKey;
+import com.nimbusds.jose.jwk.gen.ECKeyGenerator;
 import org.junit.Test;
 import org.medibloc.vc.VerifiableCredentialException;
 import org.medibloc.vc.model.Presentation;
 import org.medibloc.vc.model.PresentationTest;
 
 import java.net.MalformedURLException;
-import java.security.KeyPair;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class JwtVerifiablePresentationTest {
     @Test
-    public void createAndVerify() throws MalformedURLException, VerifiableCredentialException {
+    public void createAndVerify() throws MalformedURLException, VerifiableCredentialException, JOSEException {
         Presentation presentation = PresentationTest.buildPresentation();
-        KeyPair keyPair = Keys.keyPairFor(SignatureAlgorithm.ES256K);
+        ECKey ecJWK = new ECKeyGenerator(Curve.SECP256K1).generate();
 
         JwtVerifiablePresentation vp = new JwtVerifiablePresentation(
-                presentation, "ES256K", presentation.getHolder() + "#key1", keyPair.getPrivate()
+                presentation, "ES256K", presentation.getHolder() + "#key1", ecJWK.toPrivateKey()
         );
         assertNotNull(vp);
 
         System.out.println(vp.serialize());
 
-        assertEquals(presentation, vp.verify(keyPair.getPublic()));
+        assertEquals(presentation, vp.verify(ecJWK.toPublicKey()));
         assertEquals(vp.getJwt(), vp.serialize());
     }
 
     @Test(expected = VerifiableCredentialException.class)
-    public void verificationFailure() throws MalformedURLException, VerifiableCredentialException {
+    public void verificationFailure() throws MalformedURLException, VerifiableCredentialException, JOSEException {
         Presentation presentation = PresentationTest.buildPresentation();
-        KeyPair keyPair1 = Keys.keyPairFor(SignatureAlgorithm.ES256K);
+        ECKey ecJWK1 = new ECKeyGenerator(Curve.SECP256K1).generate();
 
         JwtVerifiablePresentation vp = new JwtVerifiablePresentation(
-                presentation, "ES256K", presentation.getHolder() + "#key1", keyPair1.getPrivate()
+                presentation, "ES256K", presentation.getHolder() + "#key1", ecJWK1.toPrivateKey()
         );
 
-        KeyPair keyPair2 = Keys.keyPairFor(SignatureAlgorithm.ES256K);
-        vp.verify(keyPair2.getPublic());
+        ECKey ecJWK2 = new ECKeyGenerator(Curve.SECP256K1).generate();
+        vp.verify(ecJWK2.toPublicKey());
     }
 }

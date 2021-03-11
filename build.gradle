@@ -11,24 +11,13 @@ sourceCompatibility = JavaVersion.VERSION_1_6
 targetCompatibility = JavaVersion.VERSION_1_6
 
 repositories {
-    maven {
-        url = "https://maven.pkg.github.com/medibloc/jjwt"
-        credentials {
-            username = System.getenv("GPR_USER")
-            password = System.getenv("GPR_API_KEY")
-        }
-    }
     mavenCentral()
 }
 
 dependencies {
-    compile 'com.fasterxml.jackson.datatype:jackson-datatype-joda:2.9.8'
+    compile 'com.nimbusds:nimbus-jose-jwt:9.7'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     compile 'org.projectlombok:lombok:1.18.8'
-    compile 'io.jsonwebtoken:jjwt-api:0.11.3-SNAPSHOT'
-    compile 'io.jsonwebtoken:jjwt-jackson:0.11.3-SNAPSHOT'
-    runtime 'io.jsonwebtoken:jjwt-impl:0.11.3-SNAPSHOT'
-            // Uncomment the next line if you want to use RSASSA-PSS (PS256, PS384, PS512) algorithms:
-            //'org.bouncycastle:bcprov-jdk15on:1.60',
     testCompile 'junit:junit:4.12'
 }
 

@@ -1,10 +1,13 @@
 package org.medibloc.vc.verifiable.jwt;
 
 import com.fasterxml.jackson.annotation.JsonValue;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.jackson.io.JacksonDeserializer;
-import io.jsonwebtoken.jackson.io.JacksonSerializer;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.crypto.ECDSASigner;
+import com.nimbusds.jose.crypto.ECDSAVerifier;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -14,7 +17,9 @@ import org.medibloc.vc.lang.Assert;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.util.Map;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
+import java.text.ParseException;
 
 @AllArgsConstructor
 @Getter
@@ -24,31 +29,32 @@ class JwtVerifiable {
     @NonNull
     private final String jwt;
 
-    JwtVerifiable(String algo, String keyId, PrivateKey privateKey, JwtBuilder jwtBuilder) throws VerifiableCredentialException {
+    JwtVerifiable(String algo, String keyId, PrivateKey privateKey, JWTClaimsSet jwtClaimsSet) throws VerifiableCredentialException {
         Assert.notNull(algo, "keyType must not be null");
         Assert.notNull(keyId, "keyId must not be null");
         Assert.notNull(privateKey, "privateKey must not be null");
-        Assert.notNull(jwtBuilder, "jwtBuilder must not be null");
+        Assert.notNull(jwtClaimsSet, "jwtClaimsSet must not be null");
 
+        JWSHeader jwsHeader = new JWSHeader.Builder(JWSAlgorithm.parse(algo)).keyID(keyId).build();
+        SignedJWT jwt = new SignedJWT(jwsHeader, jwtClaimsSet);
         try {
-            this.jwt = jwtBuilder
-                    .setHeaderParam("kid", keyId)
-                    .signWith(privateKey, SignatureAlgorithm.forName(algo))
-                    .serializeToJsonWith(new JacksonSerializer(new ObjectMapper()))
-                    .compact();
-        } catch (JwtException e) {
+            jwt.sign(new ECDSASigner((ECPrivateKey) privateKey));
+            this.jwt = jwt.serialize();
+        } catch (JOSEException e) {
             throw new VerifiableCredentialException(e);
         }
     }
 
-    Jws<Claims> verifyJwt(PublicKey publicKey, Map<String, Class> classMap) throws VerifiableCredentialException {
+    JWTClaimsSet verifyJwt(PublicKey publicKey) throws VerifiableCredentialException {
         try {
-            return Jwts.parserBuilder()
-                    .setSigningKey(publicKey)
-                    .deserializeJsonWith(new JacksonDeserializer(classMap))
-                    .build()
-                    .parseClaimsJws(this.jwt);
-        } catch (JwtException e) {
+            SignedJWT jwt = SignedJWT.parse(this.jwt);
+            if (!jwt.verify(new ECDSAVerifier((ECPublicKey) publicKey))) {
+                throw new VerifiableCredentialException("JWT verification failed");
+            }
+            return jwt.getJWTClaimsSet();
+        } catch (ParseException e) {
+            throw new VerifiableCredentialException(e);
+        } catch (JOSEException e) {
             throw new VerifiableCredentialException(e);
         }
     }

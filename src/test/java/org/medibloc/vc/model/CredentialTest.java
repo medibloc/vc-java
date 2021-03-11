@@ -48,7 +48,7 @@ public class CredentialTest {
     public void toJson() throws MalformedURLException, VerifiableCredentialException, ParseException {
         Credential vc = buildCredential();
         assertEquals(
-                "{\"@context\":[\"https://www.w3.org/2018/credentials/v1\",\"https://www.w3.org/2018/credentials/examples/v1\"],\"credentialSubject\":{\"id\":\"did:panacea:7aR7Cg46JamVbJgk8azVgUm7Prd74ry1Uct87nZqL3ny\",\"degree\":{\"name\":\"Bachelor of Science and Arts\",\"type\":\"BachelorDegree\"}},\"id\":\"http://example.edu/credentials/3732\",\"issuanceDate\":\"2020-10-05T12:30:50Z\",\"issuer\":{\"id\":\"did:panacea:7Prd74ry1Uct87nZqL3ny7aR7Cg46JamVbJgk8azVgUm\",\"name\":\"Example University\"},\"type\":[\"VerifiableCredential\",\"UniversityDegreeCredential\"]}",
+                "{\"@context\":[\"https://www.w3.org/2018/credentials/v1\",\"https://www.w3.org/2018/credentials/examples/v1\"],\"credentialSubject\":{\"id\":\"did:panacea:7aR7Cg46JamVbJgk8azVgUm7Prd74ry1Uct87nZqL3ny\",\"degree\":{\"scores\":{\"physics\":\"D-\",\"math\":\"A+\"},\"name\":\"Bachelor of Science and Arts\",\"type\":\"BachelorDegree\"}},\"id\":\"http://example.edu/credentials/3732\",\"issuanceDate\":\"2020-10-05T12:30:50Z\",\"issuer\":{\"id\":\"did:panacea:7Prd74ry1Uct87nZqL3ny7aR7Cg46JamVbJgk8azVgUm\",\"name\":\"Example University\"},\"type\":[\"VerifiableCredential\",\"UniversityDegreeCredential\"]}",
                 vc.toJson()
         );
     }
@@ -63,6 +63,10 @@ public class CredentialTest {
         credentialSubject.addClaim("degree", new HashMap<String, Object>() {{
             put("type", "BachelorDegree");
             put("name", "Bachelor of Science and Arts");
+            put("scores", new HashMap<String, Object>() {{
+                put("math", "A+");
+                put("physics", "D-");
+            }});
         }});
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
