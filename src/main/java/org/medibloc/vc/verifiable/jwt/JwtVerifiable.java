@@ -22,7 +22,7 @@ import java.util.Map;
 class JwtVerifiable {
     @JsonValue
     @NonNull
-    private final String jws;
+    private final String jwt;
 
     JwtVerifiable(String algo, String keyId, PrivateKey privateKey, JwtBuilder jwtBuilder) throws VerifiableCredentialException {
         Assert.notNull(algo, "keyType must not be null");
@@ -31,7 +31,7 @@ class JwtVerifiable {
         Assert.notNull(jwtBuilder, "jwtBuilder must not be null");
 
         try {
-            this.jws = jwtBuilder
+            this.jwt = jwtBuilder
                     .setHeaderParam("kid", keyId)
                     .signWith(privateKey, SignatureAlgorithm.forName(algo))
                     .serializeToJsonWith(new JacksonSerializer(new ObjectMapper()))
@@ -47,13 +47,13 @@ class JwtVerifiable {
                     .setSigningKey(publicKey)
                     .deserializeJsonWith(new JacksonDeserializer(classMap))
                     .build()
-                    .parseClaimsJws(this.jws);
+                    .parseClaimsJws(this.jwt);
         } catch (JwtException e) {
             throw new VerifiableCredentialException(e);
         }
     }
 
     public String serialize() {
-        return this.jws;
+        return this.jwt;
     }
 }

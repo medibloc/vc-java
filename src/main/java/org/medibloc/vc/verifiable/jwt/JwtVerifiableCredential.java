@@ -38,8 +38,8 @@ public class JwtVerifiableCredential extends JwtVerifiable implements Verifiable
         super(jwsAlgo, keyId, privateKey, encode(credential));
     }
 
-    public JwtVerifiableCredential(String jws) {
-        super(jws);
+    public JwtVerifiableCredential(String jwt) {
+        super(jwt);
     }
 
     @Override

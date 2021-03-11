@@ -36,8 +36,8 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
         super(jwsAlgo, keyId, privateKey, encode(presentation));
     }
 
-    public JwtVerifiablePresentation(String jws) {
-        super(jws);
+    public JwtVerifiablePresentation(String jwt) {
+        super(jwt);
     }
 
     @Override

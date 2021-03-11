@@ -67,9 +67,9 @@ VerifiableCredential vc = new JwtVerifiableCredential(
         privateKey
 );
 
-System.out.println(vc.serialize());
-// eyJraWQiOiJkaWQ6cGFuYWNlYTo3UHJkNzRyeTF......
-}
+// VerifiableCredential can be serialized as JWT (JSON Web Token)
+// For example, eyJraWQiOiJkaWQ6cGFuYWNlYTo3UHJkNzRyeTF......
+String jwt = vc.serialize();
 ```
 
 ### Verifying a Verifiable Credential
@@ -79,9 +79,9 @@ import java.security.PublicKey;
 import org.medibloc.vc.model.Credential;
 import org.medibloc.vc.verifiable.VerifiableCredential;
 
-// This example assumes that you already have a public key.
+// This example assumes that you already have a public key and a serialized VerifiableCredential (JWT).
 // In the future, we will introduce the feature that resolves a public key from a DID document.
-VerifiableCredential vc = ...;
+VerifiableCredential vc = new JwtVerifiableCredential(jwt);
 PublicKey publicKey = ...;
 
 Credential credential = vc.verify(publicKey);
@@ -113,9 +113,9 @@ VerifiablePresentation vp = new JwtVerifiablePresentation(
     privateKey
 );
 
-System.out.println(vc.serialize());
-// eyJraWQiOiJkaWQ6cGFuYWNlYTo3UHJkNzRyeTF......
-}
+// VerifiablePresentation can be serialized as JWT (JSON Web Token)
+// For example, eyJraWQiOiJkaWQ6cGFuYWNlYTo3UHJkNzRyeTF......
+String jwt = vp.serialize();
 ```
 
 ### Verifying a Verifiable Presentation
@@ -125,9 +125,9 @@ import java.security.PublicKey;
 import org.medibloc.vc.model.Presentation;
 import org.medibloc.vc.verifiable.VerifiablePresentation;
 
-// This example assumes that you already have a public key.
+// This example assumes that you already have a public key and a serialized VerifiablePresentation (JWT).
 // In the future, we will introduce the feature that resolves a public key from a DID document.
-VerifiablePresentation vp = ...;
+VerifiablePresentation vp = new JwtVerifiablePresentation(jwt);
 PublicKey publicKey = ...;
 
 Presentation presentation = vp.verify(publicKey);

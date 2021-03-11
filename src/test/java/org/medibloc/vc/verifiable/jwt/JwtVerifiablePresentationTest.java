@@ -27,7 +27,7 @@ public class JwtVerifiablePresentationTest {
         System.out.println(vp.serialize());
 
         assertEquals(presentation, vp.verify(keyPair.getPublic()));
-        assertEquals(vp.getJws(), vp.serialize());
+        assertEquals(vp.getJwt(), vp.serialize());
     }
 
     @Test(expected = VerifiableCredentialException.class)
