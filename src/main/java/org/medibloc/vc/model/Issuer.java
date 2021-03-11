@@ -20,7 +20,7 @@ public class Issuer {
     @NonNull
     private final String id;
     @NonNull
-    private final Extras extras;
+    private final Map<String, Object> extras;
 
     // only for JSON deserialization
     private Issuer() {
@@ -28,12 +28,12 @@ public class Issuer {
     }
 
     public Issuer(String id) {
-        this(id, new Extras());
+        this(id, null);
     }
 
-    public Issuer(String id, Extras extras) {
+    public Issuer(String id, Map<String, Object> extras) {
         this.id = id;
-        this.extras = extras != null ? extras : new Extras();
+        this.extras = extras != null ? extras : new HashMap<String, Object>();
     }
 
     // to unflatten key-values into a Map for JSON deserialization
@@ -48,9 +48,5 @@ public class Issuer {
     @JsonAnyGetter
     public Map<String, Object> getExtras() {
         return extras;
-    }
-
-    // This is like the type aliasing, so that the Extra class can be passed as 'Class' type arguments for Jackson.
-    public static class Extras extends HashMap<String, Object> {
     }
 }
