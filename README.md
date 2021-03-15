@@ -15,7 +15,16 @@ For more details, please see [Usages](#usage).
 
 ## Installation
 
-TBD
+For Gradle:
+```gradle
+repositories {
+    jcenter()
+}
+
+dependencies {
+    implementation 'org.medibloc:vc:0.0.1'
+}
+```
 
 ## Usage
 

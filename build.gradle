@@ -2,9 +2,10 @@ plugins {
     id 'java'
     id 'maven'
     id 'maven-publish'
+    id 'com.jfrog.bintray' version '1.8.5'
 }
 
-group 'org.medibloc.vc'
+group 'org.medibloc'
 version '0.0.1'
 
 sourceCompatibility = JavaVersion.VERSION_1_6
@@ -21,19 +22,34 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    classifier = 'javadoc'
+}
+
 publishing {
-    repositories {
-        maven {
-            url = uri("https://maven.pkg.github.com/medibloc/vc")
-            credentials {
-                username = System.getenv("GPR_USER")
-                password = System.getenv("GPR_API_KEY")
-            }
+    publications {
+        bintray(MavenPublication) {
+            groupId 'org.medibloc'
+            artifactId 'vc'
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
         }
     }
-    publications {
-        gpr(MavenPublication) {
-            from(components.java)
-        }
+}
+
+bintray {
+    user = System.getenv('BINTRAY_USER')
+    key = System.getenv('BINTRAY_KEY')
+    publications = ['bintray']
+    pkg {
+        repo = 'vc'
+        name = 'vc'
     }
 }
