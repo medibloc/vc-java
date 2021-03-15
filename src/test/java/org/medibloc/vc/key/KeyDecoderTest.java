@@ -37,6 +37,7 @@ public class KeyDecoderTest {
                 credential, "ES256K", credential.getIssuer().getId() + "#key1", privateKey
         );
         assertNotNull(vc);
-        assertEquals(credential, vc.verify(publicKey));
+        assertEquals(credential, vc.getCredential());
+        vc.verify(publicKey);
     }
 }

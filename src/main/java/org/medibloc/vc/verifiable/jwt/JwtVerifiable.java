@@ -43,16 +43,33 @@ class JwtVerifiable {
         }
     }
 
-    JWTClaimsSet verifyJwt(ECPublicKey publicKey) throws VerifiableCredentialException {
+    void verifyJwt(ECPublicKey publicKey) throws VerifiableCredentialException {
         try {
             SignedJWT jwt = SignedJWT.parse(this.jwt);
             if (!jwt.verify(new ECDSAVerifier(publicKey))) {
                 throw new VerifiableCredentialException("JWT verification failed");
             }
-            return jwt.getJWTClaimsSet();
         } catch (ParseException e) {
             throw new VerifiableCredentialException(e);
         } catch (JOSEException e) {
+            throw new VerifiableCredentialException(e);
+        }
+    }
+
+    JWTClaimsSet getJwtClaimsSet() throws VerifiableCredentialException {
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(this.jwt);
+            return signedJWT.getJWTClaimsSet();
+        } catch (ParseException e) {
+            throw new VerifiableCredentialException(e);
+        }
+    }
+
+    public String getKeyId() throws VerifiableCredentialException {
+        try {
+            SignedJWT signedJWT = SignedJWT.parse(this.jwt);
+            return signedJWT.getHeader().getKeyID();
+        } catch (ParseException e) {
             throw new VerifiableCredentialException(e);
         }
     }

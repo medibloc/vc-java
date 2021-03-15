@@ -44,8 +44,13 @@ public class JwtVerifiableCredential extends JwtVerifiable implements Verifiable
     }
 
     @Override
-    public Credential verify(ECPublicKey publicKey) throws VerifiableCredentialException {
-        return decode(super.verifyJwt(publicKey));
+    public Credential getCredential() throws VerifiableCredentialException {
+        return decode(super.getJwtClaimsSet());
+    }
+
+    @Override
+    public void verify(ECPublicKey publicKey) throws VerifiableCredentialException {
+        super.verifyJwt(publicKey);
     }
 
     // https://www.w3.org/TR/vc-data-model/#json-web-token-extensions

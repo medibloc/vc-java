@@ -19,6 +19,7 @@ dependencies {
     compile 'com.nimbusds:nimbus-jose-jwt:9.7'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     compile 'org.projectlombok:lombok:1.18.8'
+    compile 'org.bouncycastle:bcprov-jdk16:1.46'
     testCompile 'junit:junit:4.12'
 }
 

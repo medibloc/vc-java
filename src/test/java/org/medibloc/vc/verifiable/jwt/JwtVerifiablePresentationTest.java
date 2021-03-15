@@ -27,7 +27,8 @@ public class JwtVerifiablePresentationTest {
 
         System.out.println(vp.serialize());
 
-        assertEquals(presentation, vp.verify(ecJWK.toECPublicKey()));
+        assertEquals(presentation, vp.getPresentation());
+        vp.verify(ecJWK.toECPublicKey());
         assertEquals(vp.getJwt(), vp.serialize());
     }
 
