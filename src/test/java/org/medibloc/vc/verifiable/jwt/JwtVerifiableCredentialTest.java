@@ -10,6 +10,8 @@ import org.medibloc.vc.model.Credential;
 import org.medibloc.vc.model.CredentialTest;
 
 import java.net.MalformedURLException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 
 import static org.junit.Assert.assertEquals;
@@ -17,16 +19,16 @@ import static org.junit.Assert.assertNotNull;
 
 public class JwtVerifiableCredentialTest {
     @Test
-    public void createAndVerify() throws MalformedURLException, VerifiableCredentialException, ParseException, JOSEException {
+    public void createAndVerify() throws MalformedURLException, VerifiableCredentialException, ParseException, JOSEException, InvalidKeySpecException, NoSuchAlgorithmException {
         Credential credential = CredentialTest.buildCredential();
         ECKey ecJWK = new ECKeyGenerator(Curve.SECP256K1).generate();
 
         JwtVerifiableCredential vc = new JwtVerifiableCredential(
-                credential, "ES256K", credential.getIssuer().getId() + "#key1", ecJWK.toPrivateKey()
+                credential, "ES256K", credential.getIssuer().getId() + "#key1", ecJWK.toECPrivateKey()
         );
         assertNotNull(vc);
 
-        assertEquals(credential, vc.verify(ecJWK.toPublicKey()));
+        assertEquals(credential, vc.verify(ecJWK.toECPublicKey()));
         assertEquals(vc.getJwt(), vc.serialize());
     }
 
@@ -35,8 +37,9 @@ public class JwtVerifiableCredentialTest {
         Credential credential = CredentialTest.buildCredential();
         ECKey ecJWK = new ECKeyGenerator(Curve.SECP256K1).generate();
 
+
         new JwtVerifiableCredential(
-                credential, "INVALID", credential.getIssuer().getId() + "#key1", ecJWK.toPrivateKey()
+                credential, "INVALID", credential.getIssuer().getId() + "#key1", ecJWK.toECPrivateKey()
         );
     }
 
@@ -46,10 +49,10 @@ public class JwtVerifiableCredentialTest {
         ECKey ecJWK1 = new ECKeyGenerator(Curve.SECP256K1).generate();
 
         JwtVerifiableCredential vc = new JwtVerifiableCredential(
-                credential, "ES256K", credential.getIssuer().getId() + "#key1", ecJWK1.toPrivateKey()
+                credential, "ES256K", credential.getIssuer().getId() + "#key1", ecJWK1.toECPrivateKey()
         );
 
         ECKey ecJWK2 = new ECKeyGenerator(Curve.SECP256K1).generate();
-        vc.verify(ecJWK2.toPublicKey());
+        vc.verify(ecJWK2.toECPublicKey());
     }
 }

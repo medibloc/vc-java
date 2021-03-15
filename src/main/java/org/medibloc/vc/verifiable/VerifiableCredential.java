@@ -11,11 +11,11 @@ import org.medibloc.vc.model.Credential;
 import org.medibloc.vc.verifiable.jwt.JwtVerifiableCredential;
 
 import java.io.IOException;
-import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
 
 @JsonDeserialize(using = VerifiableCredential.JsonDeserializer.class)
 public interface VerifiableCredential {
-    public Credential verify(PublicKey publicKey) throws VerifiableCredentialException;
+    public Credential verify(ECPublicKey publicKey) throws VerifiableCredentialException;
     public String serialize();
 
     public class JsonDeserializer extends StdDeserializer<VerifiableCredential> {

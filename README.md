@@ -22,7 +22,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.medibloc:vc:0.0.1'
+    implementation 'org.medibloc:vc:0.0.2'
 }
 ```
 
@@ -31,7 +31,7 @@ dependencies {
 ### Creating a Verifiable Credential
 
 ```java
-import java.security.PrivateKey;
+import java.security.interfaces.ECPrivateKey;
 import org.medibloc.vc.model.Credential;
 import org.medibloc.vc.model.CredentialSubject;
 import org.medibloc.vc.model.Issuer;
@@ -67,7 +67,7 @@ System.out.println(credential.toJson());
 // Create a VerifiableCredential using a key pair
 // Currently, only external proof (JWT) is supported.
 // This example assumes that you already have a private key.
-PrivateKey privateKey = ...;
+ECPrivateKey privateKey = ...;
 
 VerifiableCredential vc = new JwtVerifiableCredential(
         credential,
@@ -84,14 +84,14 @@ String jwt = vc.serialize();
 ### Verifying a Verifiable Credential
 
 ```java
-import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
 import org.medibloc.vc.model.Credential;
 import org.medibloc.vc.verifiable.VerifiableCredential;
 
 // This example assumes that you already have a public key and a serialized VerifiableCredential (JWT).
 // In the future, we will introduce the feature that resolves a public key from a DID document.
 VerifiableCredential vc = new JwtVerifiableCredential(jwt);
-PublicKey publicKey = ...;
+ECPublicKey publicKey = ...;
 
 Credential credential = vc.verify(publicKey);
 ```
@@ -99,7 +99,7 @@ Credential credential = vc.verify(publicKey);
 ### Creating a Verifiable Presentation
 
 ```java
-import java.security.PrivateKey;
+import java.security.interfaces.ECPrivateKey;
 import org.medibloc.vc.model.Presentation;
 import org.medibloc.vc.verifiable.VerifiablePresentation;
 
@@ -114,7 +114,7 @@ Presentation presentation = Presentation.builder()
 System.out.println(credential.toJson());
 // {"@context":...}
     
-PrivateKey privateKey = ...;
+ECPrivateKey privateKey = ...;
 VerifiablePresentation vp = new JwtVerifiablePresentation(
     presentation,
     "ES256K",
@@ -130,14 +130,14 @@ String jwt = vp.serialize();
 ### Verifying a Verifiable Presentation
 
 ```java
-import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
 import org.medibloc.vc.model.Presentation;
 import org.medibloc.vc.verifiable.VerifiablePresentation;
 
 // This example assumes that you already have a public key and a serialized VerifiablePresentation (JWT).
 // In the future, we will introduce the feature that resolves a public key from a DID document.
 VerifiablePresentation vp = new JwtVerifiablePresentation(jwt);
-PublicKey publicKey = ...;
+ECPublicKey publicKey = ...;
 
 Presentation presentation = vp.verify(publicKey);
 ```

@@ -15,8 +15,6 @@ import lombok.NonNull;
 import org.medibloc.vc.VerifiableCredentialException;
 import org.medibloc.vc.lang.Assert;
 
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
@@ -29,7 +27,7 @@ class JwtVerifiable {
     @NonNull
     private final String jwt;
 
-    JwtVerifiable(String algo, String keyId, PrivateKey privateKey, JWTClaimsSet jwtClaimsSet) throws VerifiableCredentialException {
+    JwtVerifiable(String algo, String keyId, ECPrivateKey privateKey, JWTClaimsSet jwtClaimsSet) throws VerifiableCredentialException {
         Assert.notNull(algo, "keyType must not be null");
         Assert.notNull(keyId, "keyId must not be null");
         Assert.notNull(privateKey, "privateKey must not be null");
@@ -38,17 +36,17 @@ class JwtVerifiable {
         JWSHeader jwsHeader = new JWSHeader.Builder(JWSAlgorithm.parse(algo)).keyID(keyId).build();
         SignedJWT jwt = new SignedJWT(jwsHeader, jwtClaimsSet);
         try {
-            jwt.sign(new ECDSASigner((ECPrivateKey) privateKey));
+            jwt.sign(new ECDSASigner(privateKey));
             this.jwt = jwt.serialize();
         } catch (JOSEException e) {
             throw new VerifiableCredentialException(e);
         }
     }
 
-    JWTClaimsSet verifyJwt(PublicKey publicKey) throws VerifiableCredentialException {
+    JWTClaimsSet verifyJwt(ECPublicKey publicKey) throws VerifiableCredentialException {
         try {
             SignedJWT jwt = SignedJWT.parse(this.jwt);
-            if (!jwt.verify(new ECDSAVerifier((ECPublicKey) publicKey))) {
+            if (!jwt.verify(new ECDSAVerifier(publicKey))) {
                 throw new VerifiableCredentialException("JWT verification failed");
             }
             return jwt.getJWTClaimsSet();

@@ -3,9 +3,9 @@ package org.medibloc.vc.verifiable;
 import org.medibloc.vc.VerifiableCredentialException;
 import org.medibloc.vc.model.Presentation;
 
-import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
 
 public interface VerifiablePresentation {
-    public Presentation verify(PublicKey publicKey) throws VerifiableCredentialException;
+    public Presentation verify(ECPublicKey publicKey) throws VerifiableCredentialException;
     public String serialize();
 }

@@ -18,8 +18,8 @@ import org.medibloc.vc.verifiable.VerifiablePresentation;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +34,7 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SINGLE_E
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class JwtVerifiablePresentation extends JwtVerifiable implements VerifiablePresentation {
-    public JwtVerifiablePresentation(Presentation presentation, String jwsAlgo, String keyId, PrivateKey privateKey) throws VerifiableCredentialException {
+    public JwtVerifiablePresentation(Presentation presentation, String jwsAlgo, String keyId, ECPrivateKey privateKey) throws VerifiableCredentialException {
         super(jwsAlgo, keyId, privateKey, encode(presentation));
     }
 
@@ -43,7 +43,7 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
     }
 
     @Override
-    public Presentation verify(PublicKey publicKey) throws VerifiableCredentialException {
+    public Presentation verify(ECPublicKey publicKey) throws VerifiableCredentialException {
         return decode(super.verifyJwt(publicKey));
     }
 

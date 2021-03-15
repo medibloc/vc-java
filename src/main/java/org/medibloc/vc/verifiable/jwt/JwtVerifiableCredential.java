@@ -19,8 +19,8 @@ import org.medibloc.vc.verifiable.VerifiableCredential;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 import java.text.ParseException;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +35,7 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SINGLE_E
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class JwtVerifiableCredential extends JwtVerifiable implements VerifiableCredential {
-    public JwtVerifiableCredential(Credential credential, String jwsAlgo, String keyId, PrivateKey privateKey) throws VerifiableCredentialException {
+    public JwtVerifiableCredential(Credential credential, String jwsAlgo, String keyId, ECPrivateKey privateKey) throws VerifiableCredentialException {
         super(jwsAlgo, keyId, privateKey, encode(credential));
     }
 
@@ -44,7 +44,7 @@ public class JwtVerifiableCredential extends JwtVerifiable implements Verifiable
     }
 
     @Override
-    public Credential verify(PublicKey publicKey) throws VerifiableCredentialException {
+    public Credential verify(ECPublicKey publicKey) throws VerifiableCredentialException {
         return decode(super.verifyJwt(publicKey));
     }
 
