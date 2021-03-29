@@ -34,8 +34,8 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SINGLE_E
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class JwtVerifiablePresentation extends JwtVerifiable implements VerifiablePresentation {
-    public JwtVerifiablePresentation(Presentation presentation, String jwsAlgo, String keyId, ECPrivateKey privateKey) throws VerifiableCredentialException {
-        super(jwsAlgo, keyId, privateKey, encode(presentation));
+    public JwtVerifiablePresentation(Presentation presentation, String jwsAlgo, String keyId, ECPrivateKey privateKey, String nonce) throws VerifiableCredentialException {
+        super(jwsAlgo, keyId, privateKey, encode(presentation), nonce);
     }
 
     public JwtVerifiablePresentation(String jwt) {
@@ -48,8 +48,8 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
     }
 
     @Override
-    public void verify(ECPublicKey publicKey) throws VerifiableCredentialException {
-        super.verifyJwt(publicKey);
+    public void verify(ECPublicKey publicKey, String nonce) throws VerifiableCredentialException {
+        super.verifyJwt(publicKey, nonce);
     }
 
     // https://www.w3.org/TR/vc-data-model/#json-web-token-extensions
@@ -58,7 +58,7 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
     /**
      * Encode a presentation to a JWT payload.
      */
-    private static JWTClaimsSet encode(Presentation presentation) {
+    private static JWTClaimsSet.Builder encode(Presentation presentation) {
         // Set JWT registered claims (iss, exp, ...)
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder().issuer(presentation.getHolder());
         if (presentation.getId() != null) {
@@ -68,7 +68,7 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
         // Set JWT private claims
         builder.claim(JWT_CLAIM_NAME_VP, VpClaim.from(presentation).toMap());
 
-        return builder.build();
+        return builder;
     }
 
     /**

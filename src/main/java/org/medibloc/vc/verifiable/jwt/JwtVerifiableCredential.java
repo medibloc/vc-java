@@ -35,8 +35,8 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Feature.WRITE_SINGLE_E
 @Getter
 @EqualsAndHashCode(callSuper = true)
 public class JwtVerifiableCredential extends JwtVerifiable implements VerifiableCredential {
-    public JwtVerifiableCredential(Credential credential, String jwsAlgo, String keyId, ECPrivateKey privateKey) throws VerifiableCredentialException {
-        super(jwsAlgo, keyId, privateKey, encode(credential));
+    public JwtVerifiableCredential(Credential credential, String jwsAlgo, String keyId, ECPrivateKey privateKey, String nonce) throws VerifiableCredentialException {
+        super(jwsAlgo, keyId, privateKey, encode(credential), nonce);
     }
 
     public JwtVerifiableCredential(String jwt) {
@@ -49,8 +49,8 @@ public class JwtVerifiableCredential extends JwtVerifiable implements Verifiable
     }
 
     @Override
-    public void verify(ECPublicKey publicKey) throws VerifiableCredentialException {
-        super.verifyJwt(publicKey);
+    public void verify(ECPublicKey publicKey, String nonce) throws VerifiableCredentialException {
+        super.verifyJwt(publicKey, nonce);
     }
 
     // https://www.w3.org/TR/vc-data-model/#json-web-token-extensions
@@ -60,8 +60,7 @@ public class JwtVerifiableCredential extends JwtVerifiable implements Verifiable
     /**
      * Encode a credential to a JWT payload, as described at https://www.w3.org/TR/vc-data-model/#jwt-encoding
      */
-    private static JWTClaimsSet encode(Credential credential) {
-
+    private static JWTClaimsSet.Builder encode(Credential credential) {
         // Set JWT registered claims (iss, exp, ...)
         JWTClaimsSet.Builder builder = new JWTClaimsSet.Builder()
                 .issuer(credential.getIssuer().getId())
@@ -80,7 +79,7 @@ public class JwtVerifiableCredential extends JwtVerifiable implements Verifiable
         builder.claim(JWT_CLAIM_NAME_VC, VcClaim.from(credential).toMap());
         builder.claim(JWT_CLAIM_NAME_ISSUER, credential.getIssuer().getExtras());
 
-        return builder.build();
+        return builder;
     }
 
     /**

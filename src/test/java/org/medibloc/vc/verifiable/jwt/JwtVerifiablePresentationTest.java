@@ -20,28 +20,43 @@ public class JwtVerifiablePresentationTest {
         Presentation presentation = PresentationTest.buildPresentation();
         ECKey ecJWK = new ECKeyGenerator(Curve.SECP256K1).generate();
 
+        final String nonce = "this-is-random";
         JwtVerifiablePresentation vp = new JwtVerifiablePresentation(
-                presentation, "ES256K", presentation.getHolder() + "#key1", ecJWK.toECPrivateKey()
+                presentation, "ES256K", presentation.getHolder() + "#key1", ecJWK.toECPrivateKey(), nonce
         );
         assertNotNull(vp);
 
         System.out.println(vp.serialize());
 
         assertEquals(presentation, vp.getPresentation());
-        vp.verify(ecJWK.toECPublicKey());
+        vp.verify(ecJWK.toECPublicKey(), nonce);
         assertEquals(vp.getJwt(), vp.serialize());
     }
 
     @Test(expected = VerifiableCredentialException.class)
-    public void verificationFailure() throws MalformedURLException, VerifiableCredentialException, JOSEException {
+    public void signatureVerificationFailure() throws MalformedURLException, VerifiableCredentialException, JOSEException {
         Presentation presentation = PresentationTest.buildPresentation();
         ECKey ecJWK1 = new ECKeyGenerator(Curve.SECP256K1).generate();
 
+        final String nonce = "this-is-random";
         JwtVerifiablePresentation vp = new JwtVerifiablePresentation(
-                presentation, "ES256K", presentation.getHolder() + "#key1", ecJWK1.toECPrivateKey()
+                presentation, "ES256K", presentation.getHolder() + "#key1", ecJWK1.toECPrivateKey(), nonce
         );
 
         ECKey ecJWK2 = new ECKeyGenerator(Curve.SECP256K1).generate();
-        vp.verify(ecJWK2.toECPublicKey());
+        vp.verify(ecJWK2.toECPublicKey(), nonce);
+    }
+
+    @Test(expected = VerifiableCredentialException.class)
+    public void nonceVerificationFailure() throws MalformedURLException, VerifiableCredentialException, JOSEException {
+        Presentation presentation = PresentationTest.buildPresentation();
+        ECKey ecJWK = new ECKeyGenerator(Curve.SECP256K1).generate();
+
+        final String nonce = "this-is-random";
+        JwtVerifiablePresentation vp = new JwtVerifiablePresentation(
+                presentation, "ES256K", presentation.getHolder() + "#key1", ecJWK.toECPrivateKey(), nonce
+        );
+
+        vp.verify(ecJWK.toECPublicKey(), "wrong-nonce");
     }
 }
