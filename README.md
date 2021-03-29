@@ -30,7 +30,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.medibloc:vc:0.0.3'
+    implementation 'org.medibloc:vc-java:0.0.3'
 }
 ```
 
