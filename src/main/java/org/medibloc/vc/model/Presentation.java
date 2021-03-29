@@ -43,7 +43,9 @@ public class Presentation extends JsonSerializable {
     @JsonProperty(JSON_PROP_VERIFIABLE_CREDS)
     private final List<VerifiableCredential> verifiableCredentials;
     @NonNull
-    private final String holder;  //TODO: make sure about its type
+    private final String holder;
+    @NonNull
+    private final String verifier;
 
     public static final String JSON_PROP_CONTEXTS = "@context";
     public static final String JSON_PROP_TYPES = "type";
