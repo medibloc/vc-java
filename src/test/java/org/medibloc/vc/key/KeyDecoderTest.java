@@ -33,11 +33,12 @@ public class KeyDecoderTest {
 
     private void assertKeyPair(ECPrivateKey privateKey, ECPublicKey publicKey) throws ParseException, VerifiableCredentialException, MalformedURLException {
         Credential credential = CredentialTest.buildCredential();
+        String nonce = "this-is-random";
         JwtVerifiableCredential vc = new JwtVerifiableCredential(
-                credential, "ES256K", credential.getIssuer().getId() + "#key1", privateKey
+                credential, "ES256K", credential.getIssuer().getId() + "#key1", privateKey, nonce
         );
         assertNotNull(vc);
         assertEquals(credential, vc.getCredential());
-        vc.verify(publicKey);
+        vc.verify(publicKey, nonce);
     }
 }

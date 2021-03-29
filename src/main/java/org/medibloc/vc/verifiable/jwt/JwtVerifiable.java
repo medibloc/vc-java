@@ -23,18 +23,25 @@ import java.text.ParseException;
 @Getter
 @EqualsAndHashCode
 class JwtVerifiable {
+    // For preventing a holder (or a verifier) from impersonating the issuer (or the holder).
+    // https://www.w3.org/TR/2019/REC-vc-data-model-20191119/#example-28-jwt-payload-of-a-jwt-based-verifiable-credential-using-jws-as-a-proof-non-normative
+    private static final String JWT_CLAIM_NAME_NONCE = "nonce";
+
     @JsonValue
     @NonNull
     private final String jwt;
 
-    JwtVerifiable(String algo, String keyId, ECPrivateKey privateKey, JWTClaimsSet jwtClaimsSet) throws VerifiableCredentialException {
+    JwtVerifiable(String algo, String keyId, ECPrivateKey privateKey, JWTClaimsSet.Builder jwtClaimsSetBuilder, String nonce) throws VerifiableCredentialException {
         Assert.notNull(algo, "keyType must not be null");
         Assert.notNull(keyId, "keyId must not be null");
         Assert.notNull(privateKey, "privateKey must not be null");
-        Assert.notNull(jwtClaimsSet, "jwtClaimsSet must not be null");
+        Assert.notNull(jwtClaimsSetBuilder, "jwtClaimsSetBuilder must not be null");
+        Assert.notNull(nonce, "nonce must not be null");
+
+        jwtClaimsSetBuilder.claim(JWT_CLAIM_NAME_NONCE, nonce);
 
         JWSHeader jwsHeader = new JWSHeader.Builder(JWSAlgorithm.parse(algo)).keyID(keyId).build();
-        SignedJWT jwt = new SignedJWT(jwsHeader, jwtClaimsSet);
+        SignedJWT jwt = new SignedJWT(jwsHeader, jwtClaimsSetBuilder.build());
         try {
             jwt.sign(new ECDSASigner(privateKey));
             this.jwt = jwt.serialize();
@@ -43,9 +50,15 @@ class JwtVerifiable {
         }
     }
 
-    void verifyJwt(ECPublicKey publicKey) throws VerifiableCredentialException {
+    void verifyJwt(ECPublicKey publicKey, String nonce) throws VerifiableCredentialException {
         try {
             SignedJWT jwt = SignedJWT.parse(this.jwt);
+
+            String nonceInJwt = (String) jwt.getJWTClaimsSet().getClaims().get(JWT_CLAIM_NAME_NONCE);
+            if (nonceInJwt == null || !nonceInJwt.equals(nonce)) {
+                throw new VerifiableCredentialException("JWT nonce doesn't match. Expected:" + nonce + ", Actual:" + nonceInJwt);
+            }
+
             if (!jwt.verify(new ECDSAVerifier(publicKey))) {
                 throw new VerifiableCredentialException("JWT verification failed");
             }
