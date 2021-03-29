@@ -48,8 +48,14 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
     }
 
     @Override
-    public void verify(ECPublicKey publicKey) throws VerifiableCredentialException {
+    public void verify(ECPublicKey publicKey, String verifier) throws VerifiableCredentialException {
         super.verifyJwt(publicKey);
+
+        if (verifier != null) {
+            if (!verifier.equals(this.getPresentation().getVerifier())) {
+                throw new VerifiableCredentialException("Unexpected verifier: " + this.getPresentation().getVerifier() + ", expected: " + verifier);
+            }
+        }
     }
 
     // https://www.w3.org/TR/vc-data-model/#json-web-token-extensions
