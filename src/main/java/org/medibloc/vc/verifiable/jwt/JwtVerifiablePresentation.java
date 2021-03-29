@@ -51,10 +51,8 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
     public void verify(ECPublicKey publicKey, String verifier) throws VerifiableCredentialException {
         super.verifyJwt(publicKey);
 
-        if (verifier != null) {
-            if (!verifier.equals(this.getPresentation().getVerifier())) {
-                throw new VerifiableCredentialException("Unexpected verifier: " + this.getPresentation().getVerifier() + ", expected: " + verifier);
-            }
+        if (verifier == null || !verifier.equals(this.getPresentation().getVerifier())) {
+            throw new VerifiableCredentialException("Unexpected verifier: " + this.getPresentation().getVerifier() + ", expected: " + verifier);
         }
     }
 
