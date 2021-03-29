@@ -48,6 +48,11 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
     }
 
     @Override
+    public void verify(ECPublicKey publicKey) throws VerifiableCredentialException {
+        super.verifyJwt(publicKey);
+    }
+
+    @Override
     public void verify(ECPublicKey publicKey, String verifier, String nonce) throws VerifiableCredentialException {
         super.verifyJwt(publicKey, nonce);
 

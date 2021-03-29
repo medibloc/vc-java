@@ -16,6 +16,7 @@ import java.security.interfaces.ECPublicKey;
 @JsonDeserialize(using = VerifiableCredential.JsonDeserializer.class)
 public interface VerifiableCredential {
     public Credential getCredential() throws VerifiableCredentialException;
+    public void verify(ECPublicKey publicKey) throws VerifiableCredentialException;
     public void verify(ECPublicKey publicKey, String nonce) throws VerifiableCredentialException;
     public String getKeyId() throws VerifiableCredentialException;
     public String serialize();

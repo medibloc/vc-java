@@ -50,13 +50,19 @@ class JwtVerifiable {
         }
     }
 
+    void verifyJwt(ECPublicKey publicKey) throws VerifiableCredentialException {
+        verifyJwt(publicKey, null);
+    }
+
     void verifyJwt(ECPublicKey publicKey, String nonce) throws VerifiableCredentialException {
         try {
             SignedJWT jwt = SignedJWT.parse(this.jwt);
 
-            String nonceInJwt = (String) jwt.getJWTClaimsSet().getClaims().get(JWT_CLAIM_NAME_NONCE);
-            if (nonceInJwt == null || !nonceInJwt.equals(nonce)) {
-                throw new VerifiableCredentialException("JWT nonce doesn't match. Expected:" + nonce + ", Actual:" + nonceInJwt);
+            if (nonce != null) {
+                String nonceInJwt = (String) jwt.getJWTClaimsSet().getClaims().get(JWT_CLAIM_NAME_NONCE);
+                if (!nonce.equals(nonceInJwt)) {
+                    throw new VerifiableCredentialException("JWT nonce doesn't match. Expected:" + nonce + ", Actual:" + nonceInJwt);
+                }
             }
 
             if (!jwt.verify(new ECDSAVerifier(publicKey))) {
