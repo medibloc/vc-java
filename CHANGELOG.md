@@ -5,6 +5,13 @@
 TBD
 
 
+## [v0.0.4](https://github.com/medibloc/vc-java/releases/tag/v0.0.4) - 2021-03-29
+
+### Features
+
+- [5b5977f](https://github.com/medibloc/vc-java/commit/5b5977f2af7156a65a98d17c3089b828c8e10276) Add simple 'verify' methods without nonce and verifier
+
+
 ## [v0.0.3](https://github.com/medibloc/vc-java/releases/tag/v0.0.3) - 2021-03-29
 
 ### Features
