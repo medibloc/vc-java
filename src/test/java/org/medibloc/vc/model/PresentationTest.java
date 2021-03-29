@@ -29,6 +29,7 @@ public class PresentationTest {
         );
         assertEquals("http://example.edu/presentations/1234", presentation.getId().toString());
         assertEquals("did:panacea:nZqL3ny7aR7Cg46Jct87gk8azVgUmamVbJ7Prd74ry1U", presentation.getHolder());
+        assertEquals("did:panacea:gk8azVgUmamVbJ7Prd74ry1UnZqL3ny7aR7Cg46Jct87", presentation.getVerifier());
         assertEquals(1, presentation.getVerifiableCredentials().size());
     }
 
