@@ -23,7 +23,7 @@ import java.text.ParseException;
 @Getter
 @EqualsAndHashCode
 class JwtVerifiable {
-    // For preventing a holder from impersonating the issuer
+    // For preventing a holder (or a verifier) from impersonating the issuer (or the holder).
     // https://www.w3.org/TR/2019/REC-vc-data-model-20191119/#example-28-jwt-payload-of-a-jwt-based-verifiable-credential-using-jws-as-a-proof-non-normative
     private static final String JWT_CLAIM_NAME_NONCE = "nonce";
 
