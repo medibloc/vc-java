@@ -29,7 +29,7 @@ public class JwtVerifiablePresentationTest {
         System.out.println(vp.serialize());
 
         assertEquals(presentation, vp.getPresentation());
-        vp.verify(ecJWK.toECPublicKey(), nonce);
+        vp.verify(ecJWK.toECPublicKey(), presentation.getVerifier(), nonce);
         assertEquals(vp.getJwt(), vp.serialize());
     }
 
@@ -44,7 +44,20 @@ public class JwtVerifiablePresentationTest {
         );
 
         ECKey ecJWK2 = new ECKeyGenerator(Curve.SECP256K1).generate();
-        vp.verify(ecJWK2.toECPublicKey(), nonce);
+        vp.verify(ecJWK2.toECPublicKey(), presentation.getVerifier(), nonce);
+    }
+
+    @Test(expected = VerifiableCredentialException.class)
+    public void verifierVerificationFailure() throws MalformedURLException, VerifiableCredentialException, JOSEException {
+        Presentation presentation = PresentationTest.buildPresentation();
+        ECKey ecJWK = new ECKeyGenerator(Curve.SECP256K1).generate();
+
+        final String nonce = "this-is-random";
+        JwtVerifiablePresentation vp = new JwtVerifiablePresentation(
+                presentation, "ES256K", presentation.getHolder() + "#key1", ecJWK.toECPrivateKey(), nonce
+        );
+
+        vp.verify(ecJWK.toECPublicKey(), "wrong-verifier", nonce);
     }
 
     @Test(expected = VerifiableCredentialException.class)
@@ -57,6 +70,6 @@ public class JwtVerifiablePresentationTest {
                 presentation, "ES256K", presentation.getHolder() + "#key1", ecJWK.toECPrivateKey(), nonce
         );
 
-        vp.verify(ecJWK.toECPublicKey(), "wrong-nonce");
+        vp.verify(ecJWK.toECPublicKey(), presentation.getVerifier(), "wrong-nonce");
     }
 }

@@ -48,8 +48,12 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
     }
 
     @Override
-    public void verify(ECPublicKey publicKey, String nonce) throws VerifiableCredentialException {
+    public void verify(ECPublicKey publicKey, String verifier, String nonce) throws VerifiableCredentialException {
         super.verifyJwt(publicKey, nonce);
+
+        if (verifier == null || !verifier.equals(this.getPresentation().getVerifier())) {
+            throw new VerifiableCredentialException("Unexpected verifier: " + this.getPresentation().getVerifier() + ", expected: " + verifier);
+        }
     }
 
     // https://www.w3.org/TR/vc-data-model/#json-web-token-extensions
@@ -64,6 +68,8 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
         if (presentation.getId() != null) {
             builder.jwtID(presentation.getId().toString());
         }
+        // Set an 'aud' claim: https://www.w3.org/TR/vc-imp-guide/#using-the-jwt-aud-claim
+        builder.audience(presentation.getVerifier());
 
         // Set JWT private claims
         builder.claim(JWT_CLAIM_NAME_VP, VpClaim.from(presentation).toMap());
@@ -76,12 +82,17 @@ public class JwtVerifiablePresentation extends JwtVerifiable implements Verifiab
      */
     private static Presentation decode(JWTClaimsSet claims) throws VerifiableCredentialException {
         try {
+            if (claims.getAudience().size() != 1) {
+                throw new VerifiableCredentialException("The length of the 'aud' in the JWT is not 1");
+            }
+
             VpClaim vpClaim = VpClaim.fromMap(claims.getJSONObjectClaim(JWT_CLAIM_NAME_VP));
             return Presentation.builder()
                     .contexts(vpClaim.getContexts())
                     .types(vpClaim.getTypes())
                     .verifiableCredentials(vpClaim.getVerifiableCredentials())
                     .holder(claims.getIssuer())
+                    .verifier(claims.getAudience().get(0))
                     .id(new URL(claims.getJWTID()))
                     .build();
         } catch (MalformedURLException e) {
